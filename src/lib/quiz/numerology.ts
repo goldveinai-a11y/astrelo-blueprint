@@ -2,28 +2,56 @@ export type DOB = { month: number; day: number; year: number };
 
 const sumDigits = (n: number): number => {
   let s = 0;
-  while (n > 0) { s += n % 10; n = Math.floor(n / 10); }
+  let x = Math.abs(n);
+  while (x > 0) {
+    s += x % 10;
+    x = Math.floor(x / 10);
+  }
   return s;
 };
 
-const reduce = (n: number): number => {
-  while (n > 9 && n !== 11 && n !== 22 && n !== 33) n = sumDigits(n);
-  return n;
+const MASTERS = new Set([11, 22, 33]);
+const KARMIC = new Set([13, 14, 16, 19]);
+
+/** Reduce to a single digit, preserving master numbers 11/22/33. */
+const reduceKeepMaster = (n: number): number => {
+  let x = n;
+  while (x > 9 && !MASTERS.has(x)) x = sumDigits(x);
+  return x;
 };
 
+/** Reduce fully to a single digit (used for karmic-debt scan). */
+const reduceFull = (n: number): number => {
+  let x = n;
+  while (x > 9) x = sumDigits(x);
+  return x;
+};
+
+/**
+ * Life Path: reduce month, day, year independently (preserving master numbers),
+ * sum them, then reduce again preserving masters.
+ */
 export function lifePath(dob: DOB): number {
-  return reduce(sumDigits(dob.month) + sumDigits(dob.day) + sumDigits(dob.year));
+  const m = reduceKeepMaster(dob.month);
+  const d = reduceKeepMaster(dob.day);
+  const y = reduceKeepMaster(dob.year);
+  return reduceKeepMaster(m + d + y);
 }
 
-const KARMIC = [13, 14, 16, 19] as const;
+/**
+ * Karmic Debt: components are reduced to single digits, summed,
+ * and we walk the reduction chain looking for 13/14/16/19.
+ */
 export function karmicDebt(dob: DOB): number | null {
-  const total = sumDigits(dob.month) + sumDigits(dob.day) + sumDigits(dob.year);
-  let n = total;
-  while (n > 33) {
-    if ((KARMIC as readonly number[]).includes(n)) return n;
-    n = sumDigits(n);
+  const m = reduceFull(dob.month);
+  const d = reduceFull(dob.day);
+  const y = reduceFull(dob.year);
+  let total = m + d + y;
+  while (total > 9) {
+    if (KARMIC.has(total)) return total;
+    total = sumDigits(total);
   }
-  return (KARMIC as readonly number[]).includes(n) ? n : null;
+  return null;
 }
 
 export function addDays(date: Date, days: number): Date {
