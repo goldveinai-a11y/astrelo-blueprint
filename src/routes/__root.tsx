@@ -82,6 +82,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "Astrelo" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "Astrelo — Numerology Blueprint" },
+      { name: "twitter:title", content: "Astrelo — Numerology Blueprint" },
+      { property: "og:description", content: "Decode the hidden mathematical sequence of your birth date with Astrelo's personalised numerology blueprint." },
+      { name: "twitter:description", content: "Decode the hidden mathematical sequence of your birth date with Astrelo's personalised numerology blueprint." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/049178b7-1377-495a-862e-123bd7f9e292" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/049178b7-1377-495a-862e-123bd7f9e292" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
