@@ -2,6 +2,8 @@ import { formatLongDate, formatShortDate } from "@/lib/quiz/numerology";
 import type { Report } from "@/lib/report/buildReport";
 import { EXPRESSION_COPY, SOUL_URGE_COPY, PERSONALITY_COPY } from "@/lib/report/copy";
 
+export type Tier = "core" | "popular" | "ultimate";
+
 const Section = ({
   index,
   title,
@@ -17,6 +19,18 @@ const Section = ({
       <h2 className="font-display text-2xl text-white sm:text-3xl">{title}</h2>
     </div>
     <div className="space-y-4 text-white/90 leading-relaxed">{children}</div>
+  </section>
+);
+
+const LockedSection = ({ title, reason }: { title: string; reason: string }) => (
+  <section className="mx-auto w-full max-w-3xl rounded-3xl border border-gold/10 bg-navy/20 p-8 opacity-60">
+    <div className="flex items-center gap-3">
+      <span className="text-2xl">🔒</span>
+      <div>
+        <h2 className="font-display text-xl text-white/60">{title}</h2>
+        <p className="text-xs text-white/40 mt-1">{reason}</p>
+      </div>
+    </div>
   </section>
 );
 
@@ -38,16 +52,31 @@ const NumberCard = ({
   </div>
 );
 
-export function ReportView({ report }: { report: Report }) {
+export function ReportView({
+  report,
+  tier = "core",
+  partnerName,
+}: {
+  report: Report;
+  tier?: Tier;
+  partnerName?: string;
+}) {
   const { meta, core, karmic, cycles, windows, compatibility, copy } = report;
   const dobDate = new Date(meta.dob.year, meta.dob.month - 1, meta.dob.day);
+
+  const hasLove = tier === "popular" || tier === "ultimate";
+  const hasForecast = tier === "ultimate";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-navy via-[#0A1A38] to-black px-4 py-12">
       <div className="mx-auto max-w-4xl space-y-8">
+
         {/* Cover */}
         <header className="rounded-3xl border border-gold/30 bg-gradient-to-br from-violet/30 via-navy/60 to-black p-10 text-center">
           <p className="text-xs uppercase tracking-[0.4em] text-gold/80">Astrelo Numerology Blueprint</p>
+          <p className="mt-1 text-xs uppercase tracking-widest text-white/40">
+            {tier === "core" ? "Core Report" : tier === "popular" ? "Core + Love Compatibility" : "Ultimate Blueprint"}
+          </p>
           <h1 className="mt-4 font-display text-4xl text-white sm:text-5xl">{meta.fullName}</h1>
           <p className="mt-2 text-white/70">Born {formatLongDate(dobDate)}</p>
           <p className="mt-1 text-xs text-white/50">Generated {formatLongDate(meta.generatedAt)}</p>
@@ -66,17 +95,13 @@ export function ReportView({ report }: { report: Report }) {
             <div>
               <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Strengths</h3>
               <ul className="space-y-1">
-                {copy.lifePath.strengths.map((s) => (
-                  <li key={s}>• {s}</li>
-                ))}
+                {copy.lifePath.strengths.map((s) => (<li key={s}>• {s}</li>))}
               </ul>
             </div>
             <div>
               <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Shadow patterns</h3>
               <ul className="space-y-1">
-                {copy.lifePath.shadows.map((s) => (
-                  <li key={s}>• {s}</li>
-                ))}
+                {copy.lifePath.shadows.map((s) => (<li key={s}>• {s}</li>))}
               </ul>
             </div>
           </div>
@@ -183,49 +208,8 @@ export function ReportView({ report }: { report: Report }) {
           )}
         </Section>
 
-        {/* 06 — Personal Year */}
-        <Section index="06 / Cycles" title={`${cycles.personalYear} — ${copy.personalYear.title}`}>
-          <p className="text-lg italic text-gold/90">{copy.personalYear.energy}</p>
-          <p>{copy.personalYear.focus}</p>
-          <h3 className="mt-6 text-sm uppercase tracking-widest text-gold/80">Next 12 months</h3>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {cycles.months.map((m) => (
-              <div key={m.label} className="flex items-center justify-between rounded-xl border border-gold/15 bg-navy/30 px-4 py-2">
-                <span className="text-sm">{m.label}</span>
-                <span className="flex items-center gap-3">
-                  <span className="font-display text-lg text-gold">{m.number}</span>
-                  <span className="text-xs text-white/60">{m.theme}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* 07 — Pinnacles */}
-        <Section index="07 / Cycles" title="Pinnacles & Challenges">
-          <p className="text-sm text-white/80">
-            Life moves in four major chapters. Each Pinnacle is a guiding energy; each Challenge is the lesson it offers in exchange.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {cycles.pinnacles.map((p, i) => (
-              <div key={i} className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-xs uppercase tracking-widest text-gold/70">Pinnacle {i + 1}</span>
-                  <span className="font-display text-3xl text-gold">{p.number}</span>
-                </div>
-                <p className="mt-1 text-sm text-white/70">
-                  Ages {p.startAge}–{p.endAge === 99 ? "end" : p.endAge}
-                  <br />
-                  <span className="text-xs">{p.startYear} → {p.endYear === meta.dob.year + 99 ? "present" : p.endYear}</span>
-                </p>
-                <p className="mt-2 text-xs text-magenta/90">Challenge {i + 1}: {cycles.challenges[i].number}</p>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* 08 — Energetic Windows */}
-        <Section index="08 / Timing" title="Your 90-Day Energetic Windows">
+        {/* 06 — Energetic Windows */}
+        <Section index="06 / Timing" title="Your 90-Day Energetic Windows">
           <p className="text-sm text-white/80">
             Days where your Personal Day resonates with your Life Path. Use them — your effort moves twice as far on these dates.
           </p>
@@ -249,26 +233,86 @@ export function ReportView({ report }: { report: Report }) {
           })}
         </Section>
 
-        {/* 09 — Compatibility */}
-        <Section index="09 / Relationships" title="Your Compatibility Map">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/5 p-4">
-              <h3 className="text-sm uppercase tracking-widest text-emerald-300">Harmony</h3>
-              <p className="mt-2 font-display text-2xl text-white">{compatibility.harmony.join(" · ")}</p>
-              <p className="mt-2 text-xs text-white/70">Natural ease.</p>
+        {/* 07 — Personal Year (Ultimate only — full month breakdown) */}
+        {hasForecast ? (
+          <Section index="07 / Forecast" title={`Personal Year ${cycles.personalYear} — ${copy.personalYear.title}`}>
+            <p className="text-lg italic text-gold/90">{copy.personalYear.energy}</p>
+            <p>{copy.personalYear.focus}</p>
+            <h3 className="mt-6 text-sm uppercase tracking-widest text-gold/80">Month-by-Month 2026 Forecast</h3>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {cycles.months.map((m) => (
+                <div key={m.label} className="flex items-center justify-between rounded-xl border border-gold/15 bg-navy/30 px-4 py-3">
+                  <div>
+                    <span className="text-sm font-medium">{m.label}</span>
+                    <p className="text-xs text-white/50 mt-0.5">{m.theme}</p>
+                  </div>
+                  <span className="font-display text-2xl text-gold">{m.number}</span>
+                </div>
+              ))}
             </div>
-            <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4">
-              <h3 className="text-sm uppercase tracking-widest text-gold">Growth</h3>
-              <p className="mt-2 font-display text-2xl text-white">{compatibility.growth.join(" · ")}</p>
-              <p className="mt-2 text-xs text-white/70">Mirror dynamics.</p>
-            </div>
-            <div className="rounded-2xl border border-magenta/30 bg-magenta/5 p-4">
-              <h3 className="text-sm uppercase tracking-widest text-magenta">Tension</h3>
-              <p className="mt-2 font-display text-2xl text-white">{compatibility.tension.join(" · ")}</p>
-              <p className="mt-2 text-xs text-white/70">Possible with explicit comms.</p>
-            </div>
+          </Section>
+        ) : (
+          <LockedSection
+            title="2026 Personal Year Month-by-Month Forecast"
+            reason="Available in the Ultimate Blueprint ($33)"
+          />
+        )}
+
+        {/* 08 — Pinnacles */}
+        <Section index="08 / Cycles" title="Pinnacles & Challenges">
+          <p className="text-sm text-white/80">
+            Life moves in four major chapters. Each Pinnacle is a guiding energy; each Challenge is the lesson it offers in exchange.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {cycles.pinnacles.map((p, i) => (
+              <div key={i} className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xs uppercase tracking-widest text-gold/70">Pinnacle {i + 1}</span>
+                  <span className="font-display text-3xl text-gold">{p.number}</span>
+                </div>
+                <p className="mt-1 text-sm text-white/70">
+                  Ages {p.startAge}–{p.endAge === 99 ? "end" : p.endAge}
+                  <br />
+                  <span className="text-xs">{p.startYear} → {p.endYear === meta.dob.year + 99 ? "present" : p.endYear}</span>
+                </p>
+                <p className="mt-2 text-xs text-magenta/90">Challenge {i + 1}: {cycles.challenges[i].number}</p>
+              </div>
+            ))}
           </div>
         </Section>
+
+        {/* 09 — Love Compatibility (popular + ultimate only) */}
+        {hasLove ? (
+          <Section index="09 / Relationships" title="Your Love Compatibility Map">
+            {partnerName && (
+              <p className="rounded-2xl border border-magenta/30 bg-magenta/5 p-4 text-sm">
+                ❤️ Compatibility analysis includes your partner: <strong>{partnerName}</strong>
+              </p>
+            )}
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/5 p-4">
+                <h3 className="text-sm uppercase tracking-widest text-emerald-300">Harmony Numbers</h3>
+                <p className="mt-2 font-display text-2xl text-white">{compatibility.harmony.join(" · ")}</p>
+                <p className="mt-2 text-xs text-white/70">Natural ease. These connections feel fluent — you don't have to translate yourself.</p>
+              </div>
+              <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4">
+                <h3 className="text-sm uppercase tracking-widest text-gold">Growth Numbers</h3>
+                <p className="mt-2 font-display text-2xl text-white">{compatibility.growth.join(" · ")}</p>
+                <p className="mt-2 text-xs text-white/70">Mirror dynamic. Friction here points to the work, not the wrong person.</p>
+              </div>
+              <div className="rounded-2xl border border-magenta/30 bg-magenta/5 p-4">
+                <h3 className="text-sm uppercase tracking-widest text-magenta">Tension Numbers</h3>
+                <p className="mt-2 font-display text-2xl text-white">{compatibility.tension.join(" · ")}</p>
+                <p className="mt-2 text-xs text-white/70">Different operating systems. Possible, but only with explicit communication.</p>
+              </div>
+            </div>
+          </Section>
+        ) : (
+          <LockedSection
+            title="Love Compatibility Map"
+            reason="Available in Core + Love ($27) and Ultimate Blueprint ($33)"
+          />
+        )}
 
         {/* 10 — Closing */}
         <Section index="10 / Closing" title="Your Affirmation for This Year">
