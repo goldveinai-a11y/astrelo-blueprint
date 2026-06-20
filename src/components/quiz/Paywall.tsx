@@ -4,12 +4,91 @@ import { XRayScroller } from "./widgets/XRayScroller";
 import { DynamicTimeline } from "./widgets/DynamicTimeline";
 import { PricingTiers, type Tier } from "./widgets/PricingTiers";
 import { lifePath, karmicDebt, type DOB } from "@/lib/quiz/numerology";
+import { useServerFn } from "@tanstack/react-start";
+import { createCheckoutSession } from "@/lib/checkout.functions";
+import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { toast } from "sonner";
 
-export function Paywall({ name, dob }: { name: string; dob: DOB }) {
+let stripePromiseCache: Promise<Stripe | null> | null = null;
+const getStripe = (pk: string) => {
+  if (!stripePromiseCache) stripePromiseCache = loadStripe(pk);
+  return stripePromiseCache;
+};
+
+export function Paywall({
+  name,
+  dob,
+  email,
+  partnerName,
+}: {
+  name: string;
+  dob: DOB;
+  email: string;
+  partnerName?: string;
+}) {
   const lp = lifePath(dob);
   const kd = karmicDebt(dob);
   const [tier, setTier] = useState<Tier>("popular");
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const create = useServerFn(createCheckoutSession);
+
+  const startCheckout = async () => {
+    if (!email) {
+      toast.error("Email is missing — please go back and enter your email.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await create({
+        data: {
+          tier,
+          email,
+          fullName: name,
+          dob: { day: dob.day, month: dob.month, year: dob.year },
+          partnerName: partnerName ?? null,
+        },
+      });
+      if (!res.clientSecret) throw new Error("No client secret");
+      setStripePromise(getStripe(res.publishableKey));
+      setClientSecret(res.clientSecret);
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not start checkout", {
+        description: e instanceof Error ? e.message : "Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (clientSecret && stripePromise) {
+    return (
+      <div className="quiz-fade-in space-y-4">
+        <div className="text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet">Secure Checkout</p>
+          <h2 className="mt-2 text-2xl font-bold text-navy">Finalize your blueprint, {name}</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Encrypted payment via Stripe · Apple Pay · Google Pay · Card</p>
+        </div>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-card">
+          <EmbeddedCheckoutProvider
+            stripe={stripePromise}
+            options={{ clientSecret }}
+          >
+            <EmbeddedCheckout />
+          </EmbeddedCheckoutProvider>
+        </div>
+        <button
+          onClick={() => setClientSecret(null)}
+          className="w-full rounded-xl py-2 text-xs font-semibold text-muted-foreground hover:text-navy"
+        >
+          ← Choose a different tier
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="quiz-fade-in space-y-6">
@@ -58,10 +137,12 @@ export function Paywall({ name, dob }: { name: string; dob: DOB }) {
       <PricingTiers selected={tier} onSelect={setTier} />
 
       <button
-        onClick={() => toast.success("Stripe checkout would open here", { description: `Selected tier: ${tier}` })}
-        className="pulse-soft sticky bottom-4 z-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-5 text-sm font-bold text-white shadow-glow"
+        onClick={startCheckout}
+        disabled={loading}
+        className="pulse-soft sticky bottom-4 z-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-5 text-sm font-bold text-white shadow-glow disabled:opacity-70"
       >
-        <Lock className="h-4 w-4" /> Unlock My Blueprint & Secure My Dates 🧭
+        <Lock className="h-4 w-4" />
+        {loading ? "Preparing checkout…" : "Unlock My Blueprint & Secure My Dates 🧭"}
       </button>
 
       <p className="pb-6 text-center text-[10px] text-muted-foreground">

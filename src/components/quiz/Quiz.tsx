@@ -177,7 +177,7 @@ export function Quiz() {
         {step.kind === "loader" && <AILoader name={answers.name || "you"} onDone={next} />}
 
         {step.kind === "paywall" && answers.dob && (
-          <Paywall name={answers.name || "you"} dob={answers.dob} />
+          <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} />
         )}
       </main>
     </div>
