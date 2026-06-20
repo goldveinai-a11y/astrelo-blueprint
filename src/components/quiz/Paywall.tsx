@@ -31,7 +31,7 @@ export function Paywall({ name, dob }: { name: string; dob: DOB }) {
 
       <div>
         <p className="mb-3 px-1 text-xs font-bold uppercase tracking-widest text-violet">
-          🔬 X-Ray Scan: Preview your 31-page blueprint
+          🔬 X-Ray Scan: Preview your personal blueprint
         </p>
         <XRayScroller name={name} />
       </div>
