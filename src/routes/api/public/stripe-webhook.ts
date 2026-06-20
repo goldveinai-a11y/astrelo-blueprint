@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import Stripe from 'stripe'
+import { generateNarrativeForOrder } from '@/lib/report/generateNarrative.server'
 
 export const Route = createFileRoute('/api/public/stripe-webhook')({
   server: {
@@ -17,7 +18,6 @@ export const Route = createFileRoute('/api/public/stripe-webhook')({
           return new Response('Missing stripe-signature header', { status: 400 })
         }
 
-        // Raw body required for signature verification — read as text, do not parse.
         const rawBody = await request.text()
         const stripe = new Stripe(secretKey, { apiVersion: '2024-12-18.acacia' as any })
 
@@ -56,6 +56,13 @@ export const Route = createFileRoute('/api/public/stripe-webhook')({
         if (!data || data.length === 0) {
           console.error('[stripe-webhook] No order found for token:', token)
           return new Response('ok', { status: 200 })
+        }
+
+        try {
+          await generateNarrativeForOrder(token)
+        } catch (e) {
+          console.error('[stripe-webhook] Narrative generation failed:', (e as Error).message)
+          // Don't fail the webhook for this — order is paid either way, report route can retry generation later
         }
 
         return new Response('ok', { status: 200 })
