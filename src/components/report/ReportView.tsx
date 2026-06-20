@@ -75,6 +75,206 @@ const NumberRing = ({
   </div>
 );
 
+const CORE_COLORS: Record<string, string> = {
+  lifePath: "#FFD700",
+  expression: "#9B6DFF",
+  soulUrge: "#EC4899",
+  personality: "#5EEAD4",
+};
+
+const RadialNumberWheel = ({
+  lifePath,
+  expression,
+  soulUrge,
+  personality,
+}: {
+  lifePath: number;
+  expression: number;
+  soulUrge: number;
+  personality: number;
+}) => {
+  const items = [
+    { key: "lifePath", label: "Life Path", value: lifePath, color: CORE_COLORS.lifePath },
+    { key: "expression", label: "Expression", value: expression, color: CORE_COLORS.expression },
+    { key: "soulUrge", label: "Soul Urge", value: soulUrge, color: CORE_COLORS.soulUrge },
+    { key: "personality", label: "Personality", value: personality, color: CORE_COLORS.personality },
+  ];
+  const cx = 130;
+  const cy = 130;
+  const rOuter = 118;
+  const rInner = 72;
+  const gapDeg = 3;
+
+  const polarToXY = (r: number, angleDeg: number) => {
+    const a = ((angleDeg - 90) * Math.PI) / 180;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+
+  const arcPath = (r0: number, r1: number, startDeg: number, endDeg: number) => {
+    const [x0s, y0s] = polarToXY(r0, startDeg);
+    const [x0e, y0e] = polarToXY(r0, endDeg);
+    const [x1e, y1e] = polarToXY(r1, endDeg);
+    const [x1s, y1s] = polarToXY(r1, startDeg);
+    const large = endDeg - startDeg > 180 ? 1 : 0;
+    return `M ${x0s} ${y0s} A ${r0} ${r0} 0 ${large} 1 ${x0e} ${y0e} L ${x1e} ${y1e} A ${r1} ${r1} 0 ${large} 0 ${x1s} ${y1s} Z`;
+  };
+
+  return (
+    <div className="relative mx-auto" style={{ width: 260, height: 260 }}>
+      <svg width={260} height={260} viewBox="0 0 260 260">
+        <defs>
+          <filter id="ringGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        {items.map((it, i) => {
+          const seg = 360 / items.length;
+          const start = i * seg + gapDeg / 2;
+          const end = (i + 1) * seg - gapDeg / 2;
+          const [lx, ly] = polarToXY((rOuter + rInner) / 2, (start + end) / 2);
+          return (
+            <g key={it.key}>
+              <path d={arcPath(rInner, rOuter, start, end)} fill={it.color} fillOpacity={0.22} stroke={it.color} strokeOpacity={0.6} strokeWidth={1} filter="url(#ringGlow)" />
+              <text x={lx} y={ly - 6} textAnchor="middle" fontSize="20" fontWeight="700" fill={it.color} fontFamily="serif">
+                {it.value}
+              </text>
+              <text x={lx} y={ly + 11} textAnchor="middle" fontSize="6.5" letterSpacing="0.5" fill="rgba(255,255,255,0.6)" style={{ textTransform: "uppercase" }}>
+                {it.label}
+              </text>
+            </g>
+          );
+        })}
+        <circle cx={cx} cy={cy} r={rInner - 4} fill="rgba(10,26,56,0.6)" stroke="rgba(255,215,0,0.25)" strokeWidth={1} />
+      </svg>
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-[9px] uppercase tracking-[0.25em] text-gold/60">Core</span>
+        <span className="text-[9px] uppercase tracking-[0.25em] text-gold/60">Blueprint</span>
+      </div>
+    </div>
+  );
+};
+
+const CoverConstellation = () => (
+  <svg
+    className="pointer-events-none absolute inset-0 h-full w-full opacity-40"
+    viewBox="0 0 400 220"
+    preserveAspectRatio="xMidYMid slice"
+  >
+    <defs>
+      <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#FFD700" stopOpacity="0.9" />
+        <stop offset="100%" stopColor="#FFD700" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+    <g stroke="rgba(255,215,0,0.25)" strokeWidth="0.6" fill="none">
+      <ellipse cx="200" cy="110" rx="170" ry="70" />
+      <ellipse cx="200" cy="110" rx="120" ry="48" />
+      <ellipse cx="200" cy="110" rx="70" ry="26" />
+    </g>
+    {[
+      [30, 60], [80, 30], [140, 150], [200, 20], [260, 140],
+      [320, 50], [370, 100], [60, 170], [350, 180], [200, 110],
+    ].map(([x, y], i) => (
+      <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 2.4 : 1.3} fill="url(#starGlow)" />
+    ))}
+  </svg>
+);
+
+const PersonalYearScale = ({ year }: { year: number }) => {
+  const labels: Record<number, string> = {
+    1: "Begin", 2: "Pair", 3: "Express", 4: "Build", 5: "Shift",
+    6: "Care", 7: "Reflect", 8: "Harvest", 9: "Release",
+  };
+  const pct = ((year - 1) / 8) * 100;
+  return (
+    <div className="mt-2">
+      <div className="relative h-2 w-full rounded-full bg-navy/60">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-violet to-gold"
+          style={{ width: `${pct}%` }}
+        />
+        <div
+          className="absolute -top-1.5 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-full border-2 border-gold bg-navy font-display text-[10px] text-gold shadow-[0_0_10px_rgba(255,215,0,0.6)]"
+          style={{ left: `${pct}%` }}
+        >
+          {year}
+        </div>
+      </div>
+      <div className="mt-3 flex justify-between text-[9px] uppercase tracking-wide text-white/40">
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+          <span key={n} className={n === year ? "text-gold font-semibold" : ""}>
+            {labels[n]}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CompatibilitySpectrum = ({
+  harmony,
+  growth,
+  tension,
+  partnerName,
+}: {
+  harmony: number[];
+  growth: number[];
+  tension: number[];
+  partnerName?: string;
+}) => {
+  const rows: { label: string; nums: number[]; color: string; glow: string; pct: number; desc: string }[] = [
+    { label: "Harmony", nums: harmony, color: "#34D399", glow: "rgba(52,211,153,0.5)", pct: 88, desc: "Natural ease — you don't have to translate yourself." },
+    { label: "Growth", nums: growth, color: "#FFD700", glow: "rgba(255,215,0,0.5)", pct: 60, desc: "Mirror dynamic — friction points to the work, not the wrong person." },
+    { label: "Tension", nums: tension, color: "#EC4899", glow: "rgba(236,72,153,0.5)", pct: 32, desc: "Different operating systems — possible with explicit communication." },
+  ];
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-magenta/30 bg-gradient-to-br from-magenta/10 via-navy/60 to-violet/10 p-6">
+      <div className="mb-6 flex items-center justify-center gap-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-gold/60 bg-navy/80 font-display text-2xl text-gold shadow-[0_0_18px_rgba(255,215,0,0.35)]">
+          ❤
+        </div>
+        {partnerName && (
+          <>
+            <div className="h-px w-10 bg-gradient-to-r from-gold/60 to-magenta/60" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-magenta/60 bg-navy/80 text-center font-display text-xs text-magenta shadow-[0_0_18px_rgba(236,72,153,0.35)]">
+              {partnerName.split(" ")[0]}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="space-y-5">
+        {rows.map((r) => (
+          <div key={r.label}>
+            <div className="mb-1.5 flex items-baseline justify-between">
+              <span className="text-xs uppercase tracking-[0.2em]" style={{ color: r.color }}>
+                {r.label}
+              </span>
+              <span className="font-display text-lg text-white">{r.nums.join(" · ")}</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-navy/70">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${r.pct}%`,
+                  background: r.color,
+                  boxShadow: `0 0 10px ${r.glow}`,
+                }}
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-white/60">{r.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const TableOfContents = ({ tier }: { tier: Tier }) => (
   <nav className="mx-auto w-full max-w-3xl rounded-3xl border border-gold/20 bg-navy/30 p-8">
     <p className="mb-5 text-xs uppercase tracking-[0.3em] text-gold/70">Table of Contents</p>
@@ -136,19 +336,24 @@ export function ReportView({
       <div className="mx-auto max-w-4xl space-y-8">
 
         {/* Cover */}
-        <header className="rounded-3xl border border-gold/30 bg-gradient-to-br from-violet/30 via-navy/60 to-black p-10 text-center">
-          <p className="text-xs uppercase tracking-[0.4em] text-gold/80">Astrelo</p>
-          <p className="mt-1 font-display text-lg text-white/70">The Numerology Blueprint of</p>
-          <h1 className="mt-2 font-display text-4xl text-white sm:text-5xl">{meta.fullName}</h1>
-          <p className="mt-3 text-white/70">Born {formatLongDate(dobDate)}</p>
-          <p className="mt-1 text-xs uppercase tracking-widest text-gold/60">
-            {tier === "core" ? "Core Edition" : tier === "popular" ? "Core + Love Edition" : "Ultimate Edition"}
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-6">
-            <NumberRing label="Life Path" number={core.lifePath} caption={copy.lifePath.title} size="lg" />
-            <NumberRing label="Expression" number={core.expression} />
-            <NumberRing label="Soul Urge" number={core.soulUrge} />
-            <NumberRing label="Personality" number={core.personality} />
+        <header className="relative overflow-hidden rounded-3xl border border-gold/30 bg-gradient-to-br from-violet/30 via-navy/60 to-black p-10 text-center">
+          <CoverConstellation />
+          <div className="relative z-10">
+            <p className="text-xs uppercase tracking-[0.4em] text-gold/80">Astrelo</p>
+            <p className="mt-1 font-display text-lg text-white/70">The Numerology Blueprint of</p>
+            <h1 className="mt-2 font-display text-4xl text-white sm:text-5xl">{meta.fullName}</h1>
+            <p className="mt-3 text-white/70">Born {formatLongDate(dobDate)}</p>
+            <p className="mt-1 text-xs uppercase tracking-widest text-gold/60">
+              {tier === "core" ? "Core Edition" : tier === "popular" ? "Core + Love Edition" : "Ultimate Edition"}
+            </p>
+            <div className="mt-6">
+              <RadialNumberWheel
+                lifePath={core.lifePath}
+                expression={core.expression}
+                soulUrge={core.soulUrge}
+                personality={core.personality}
+              />
+            </div>
           </div>
         </header>
 
@@ -308,6 +513,7 @@ export function ReportView({
           <Chapter n="07" id="forecast" title={`Personal Year ${cycles.personalYear} — ${copy.personalYear.title}`}>
             <p className="text-lg italic text-gold/90">{copy.personalYear.energy}</p>
             <p>{copy.personalYear.focus}</p>
+            <PersonalYearScale year={cycles.personalYear} />
             <h3 className="mt-6 text-sm uppercase tracking-widest text-gold/80">Month-by-Month 2026 Forecast</h3>
             <div className="grid gap-2 sm:grid-cols-2">
               {cycles.months.map((m) => (
@@ -356,28 +562,12 @@ export function ReportView({
         {/* 09 — Love Compatibility */}
         {hasLove ? (
           <Chapter n="09" id="love" title="Your Love Compatibility Map">
-            {partnerName && (
-              <p className="rounded-2xl border border-magenta/30 bg-magenta/5 p-4 text-sm">
-                ❤️ Compatibility analysis includes your partner: <strong>{partnerName}</strong>
-              </p>
-            )}
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/5 p-4 text-center">
-                <h3 className="text-sm uppercase tracking-widest text-emerald-300">Harmony</h3>
-                <p className="mt-3 font-display text-3xl text-white">{compatibility.harmony.join(" · ")}</p>
-                <p className="mt-3 text-xs text-white/70">Natural ease. You don't have to translate yourself.</p>
-              </div>
-              <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4 text-center">
-                <h3 className="text-sm uppercase tracking-widest text-gold">Growth</h3>
-                <p className="mt-3 font-display text-3xl text-white">{compatibility.growth.join(" · ")}</p>
-                <p className="mt-3 text-xs text-white/70">Mirror dynamic. Friction points to the work, not the wrong person.</p>
-              </div>
-              <div className="rounded-2xl border border-magenta/30 bg-magenta/5 p-4 text-center">
-                <h3 className="text-sm uppercase tracking-widest text-magenta">Tension</h3>
-                <p className="mt-3 font-display text-3xl text-white">{compatibility.tension.join(" · ")}</p>
-                <p className="mt-3 text-xs text-white/70">Different operating systems. Possible with explicit communication.</p>
-              </div>
-            </div>
+            <CompatibilitySpectrum
+              harmony={compatibility.harmony}
+              growth={compatibility.growth}
+              tension={compatibility.tension}
+              partnerName={partnerName}
+            />
           </Chapter>
         ) : (
           <LockedChapter n="09" title="Love Compatibility Map" reason="Available in Core + Love ($27) and Ultimate Blueprint ($33)" />
