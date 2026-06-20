@@ -5,7 +5,7 @@ export function AILoader({ name, onDone }: { name: string; onDone: () => void })
     { p: 12, t: `Isolating your Life Path Number for ${name}…` },
     { p: 38, t: "Building the Pythagorean Square Matrix…" },
     { p: 67, t: "Cross-referencing financial stress with Karmic Debt cycles…" },
-    { p: 100, t: `Success! Your 31-page Blueprint for ${name} is ready.` },
+    { p: 100, t: `Success! Your Numerology Blueprint for ${name} is ready.` },
   ];
   const [step, setStep] = useState(0);
   useEffect(() => {
