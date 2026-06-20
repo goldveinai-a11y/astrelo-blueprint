@@ -47,7 +47,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     const stripe = new Stripe(stripeKey);
     const session = await stripe.checkout.sessions.create({
-      ui_mode: "embedded",
+      ui_mode: "embedded_page",
       mode: "payment",
       line_items: [{ price: TIER_PRICES[data.tier], quantity: 1 }],
       customer_email: data.email,
