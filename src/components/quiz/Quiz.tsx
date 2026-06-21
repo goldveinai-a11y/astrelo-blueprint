@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Compass, Sparkles, Star } from "lucide-react";
 import { ProgressBar } from "./widgets/ProgressBar";
 import { OptionCard } from "./widgets/OptionCard";
@@ -7,6 +7,7 @@ import { DateOfBirthPicker } from "./widgets/DateOfBirthPicker";
 import { AILoader } from "./widgets/AILoader";
 import { MilestoneScreen } from "./MilestoneScreen";
 import { Paywall } from "./Paywall";
+import { track } from "@/lib/analytics";
 import type { Answers } from "@/lib/quiz/types";
 import type { DOB } from "@/lib/quiz/numerology";
 import heroImg from "@/assets/quiz/hero-cosmic.jpg";
@@ -102,6 +103,16 @@ export function Quiz() {
   const next = () => setIdx((i) => Math.min(STEPS.length - 1, i + 1));
   const back = () => setIdx((i) => Math.max(0, i - 1));
 
+  useEffect(() => {
+    const stepKey = "key" in step ? step.key : "n" in step ? `milestone_${step.n}` : step.kind;
+    track("quiz_step_view", {
+      step_index: idx,
+      step_total: STEPS.length,
+      step_kind: step.kind,
+      step_key: stepKey,
+    });
+  }, [idx]);
+
   const progress = useMemo(() => (idx === 0 ? 0 : (idx / (STEPS.length - 1)) * 100), [idx]);
   const showHeader = step.kind !== "hero" && step.kind !== "loader" && step.kind !== "paywall";
 
@@ -170,7 +181,13 @@ export function Quiz() {
             value={emailInput}
             onChange={setEmailInput}
             cta="Send My Blueprint"
-            onSubmit={() => { if (/.+@.+\..+/.test(emailInput)) { setAnswers((a) => ({ ...a, email: emailInput.trim() })); next(); } }}
+            onSubmit={() => {
+              if (/.+@.+\..+/.test(emailInput)) {
+                setAnswers((a) => ({ ...a, email: emailInput.trim() }));
+                track("generate_lead", { method: "quiz_email_capture" });
+                next();
+              }
+            }}
           />
         )}
 
