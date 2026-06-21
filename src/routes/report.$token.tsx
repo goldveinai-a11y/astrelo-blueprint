@@ -128,3 +128,46 @@ function ReportPage() {
     </div>
   );
 }
+
+function ReadyReport({
+  token,
+  fullName,
+  dob,
+  tier,
+  partnerName,
+  narrative,
+}: {
+  token: string;
+  fullName: string;
+  dob: { day: number; month: number; year: number };
+  tier: Tier;
+  partnerName?: string;
+  narrative: GeneratedNarrative;
+}) {
+  useEffect(() => {
+    const key = `ga_purchase_${token}`;
+    if (typeof window === "undefined") return;
+    if (window.sessionStorage.getItem(key)) return;
+    const value = TIER_PRICE_USD[tier];
+    track("purchase", {
+      transaction_id: token,
+      currency: "USD",
+      value,
+      items: [
+        { item_id: tier, item_name: `Numerology Blueprint — ${tier}`, price: value, quantity: 1 },
+      ],
+    });
+    track("view_result", { transaction_id: token, tier });
+    window.sessionStorage.setItem(key, "1");
+  }, [token, tier]);
+
+  const report = buildReport({ fullName, dob });
+  return (
+    <ReportView
+      report={report}
+      tier={tier}
+      partnerName={partnerName}
+      narrative={narrative}
+    />
+  );
+}
