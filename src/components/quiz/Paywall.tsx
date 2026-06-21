@@ -52,6 +52,7 @@ export function Paywall({
   const lp = lifePath(dob);
   const kd = karmicDebt(dob);
   const [tier, setTier] = useState<Tier>("popular");
+  const [partnerNameInput, setPartnerNameInput] = useState("");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -85,7 +86,7 @@ export function Paywall({
           email,
           fullName: name,
           dob: { day: dob.day, month: dob.month, year: dob.year },
-          partnerName: partnerName ?? null,
+          partnerName: partnerNameInput.trim() || partnerName || null,
         },
       });
       if (!res.clientSecret) throw new Error("No client secret");
@@ -176,6 +177,28 @@ export function Paywall({
       </div>
 
       <PricingTiers selected={tier} onSelect={setTier} />
+
+      {tier !== "core" && (
+        <div className="space-y-1.5">
+          <label
+            htmlFor="partnerName"
+            className="block px-1 text-xs font-bold uppercase tracking-widest text-violet"
+          >
+            💞 Partner's name (for Love Compatibility)
+          </label>
+          <input
+            id="partnerName"
+            type="text"
+            value={partnerNameInput}
+            onChange={(e) => setPartnerNameInput(e.target.value)}
+            placeholder="e.g. Alex"
+            className="h-12 w-full rounded-2xl border-2 border-border bg-card px-4 text-sm font-medium outline-none transition-colors focus:border-violet"
+          />
+          <p className="px-1 text-[10px] text-muted-foreground">
+            Optional — leave blank for a general Love Compatibility reading.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-1.5 text-center text-[11px] text-muted-foreground">
         <p className="flex items-center justify-center gap-1.5 font-semibold text-navy">
