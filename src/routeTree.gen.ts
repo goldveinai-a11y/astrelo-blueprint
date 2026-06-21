@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReportPreviewRouteImport } from './routes/report.preview'
+import { Route as ReportTokenRouteImport } from './routes/report.$token'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicGetReportRouteImport } from './routes/api/public/get-report'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const ReportPreviewRoute = ReportPreviewRouteImport.update({
   id: '/report/preview',
   path: '/report/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportTokenRoute = ReportTokenRouteImport.update({
+  id: '/report/$token',
+  path: '/report/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
@@ -37,12 +43,14 @@ const ApiPublicGetReportRoute = ApiPublicGetReportRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/report/$token': typeof ReportTokenRoute
   '/report/preview': typeof ReportPreviewRoute
   '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/report/$token': typeof ReportTokenRoute
   '/report/preview': typeof ReportPreviewRoute
   '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -50,6 +58,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/report/$token': typeof ReportTokenRoute
   '/report/preview': typeof ReportPreviewRoute
   '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
@@ -58,18 +67,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/report/$token'
     | '/report/preview'
     | '/api/public/get-report'
     | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/report/$token'
     | '/report/preview'
     | '/api/public/get-report'
     | '/api/public/stripe-webhook'
   id:
     | '__root__'
     | '/'
+    | '/report/$token'
     | '/report/preview'
     | '/api/public/get-report'
     | '/api/public/stripe-webhook'
@@ -77,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ReportTokenRoute: typeof ReportTokenRoute
   ReportPreviewRoute: typeof ReportPreviewRoute
   ApiPublicGetReportRoute: typeof ApiPublicGetReportRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -98,6 +111,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/report/$token': {
+      id: '/report/$token'
+      path: '/report/$token'
+      fullPath: '/report/$token'
+      preLoaderRoute: typeof ReportTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/stripe-webhook': {
       id: '/api/public/stripe-webhook'
       path: '/api/public/stripe-webhook'
@@ -117,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ReportTokenRoute: ReportTokenRoute,
   ReportPreviewRoute: ReportPreviewRoute,
   ApiPublicGetReportRoute: ApiPublicGetReportRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
@@ -124,3 +145,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
