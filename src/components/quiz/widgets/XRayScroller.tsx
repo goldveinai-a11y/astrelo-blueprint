@@ -28,7 +28,7 @@ export function XRayScroller({ name }: { name: string }) {
           <img src={reportCover} alt="Report cover" loading="lazy" className="h-72 w-full object-cover" />
           <div className="px-3 py-3 text-center">
             <p className="text-[10px] uppercase tracking-widest text-white/70">Astrelo Numerology</p>
-            <p className="mt-1 text-sm font-bold text-white">{name}'s 31-Page Blueprint</p>
+            <p className="mt-1 text-sm font-bold text-white">{name}'s 10-Chapter Blueprint</p>
           </div>
         </div>
 
