@@ -4,6 +4,23 @@ import { EXPRESSION_COPY, SOUL_URGE_COPY, PERSONALITY_COPY } from "@/lib/report/
 
 export type Tier = "core" | "popular" | "ultimate";
 
+export type GeneratedNarrative = {
+  "life-path": string;
+  "expression": string;
+  "soul-urge": string;
+  "personality": string;
+  "karmic": string;
+  "windows": string;
+  "forecast": string;
+  "pinnacles": string;
+  "love": string;
+  "closing": string;
+};
+
+const NarrativeBlock = ({ text }: { text: string }) => (
+  <p className="text-white/90 leading-relaxed">{text}</p>
+);
+
 const CHAPTERS = [
   { n: "01", id: "life-path", title: "Life Path" },
   { n: "02", id: "expression", title: "Expression" },
@@ -308,10 +325,12 @@ export function ReportView({
   report,
   tier = "core",
   partnerName,
+  narrative,
 }: {
   report: Report;
   tier?: Tier;
   partnerName?: string;
+  narrative?: GeneratedNarrative;
 }) {
   const { meta, core, karmic, cycles, windows, compatibility, copy } = report;
   const dobDate = new Date(meta.dob.year, meta.dob.month - 1, meta.dob.day);
@@ -361,88 +380,106 @@ export function ReportView({
 
         {/* 01 — Life Path */}
         <Chapter n="01" id="life-path" title={`Life Path ${core.lifePath} — ${copy.lifePath.title}`}>
-          <p className="text-lg italic text-gold/90">"{copy.lifePath.essence}"</p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Strengths</h3>
-              <ul className="space-y-1">
-                {copy.lifePath.strengths.map((s) => (<li key={s}>• {s}</li>))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Shadow patterns</h3>
-              <ul className="space-y-1">
-                {copy.lifePath.shadows.map((s) => (<li key={s}>• {s}</li>))}
-              </ul>
-            </div>
-          </div>
-          <p className="border-l-2 border-gold/60 pl-4">{copy.lifePath.guidance}</p>
+          {narrative?.["life-path"] ? (
+            <NarrativeBlock text={narrative["life-path"]} />
+          ) : (
+            <>
+              <p className="text-lg italic text-gold/90">"{copy.lifePath.essence}"</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Strengths</h3>
+                  <ul className="space-y-1">
+                    {copy.lifePath.strengths.map((s) => (<li key={s}>• {s}</li>))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Shadow patterns</h3>
+                  <ul className="space-y-1">
+                    {copy.lifePath.shadows.map((s) => (<li key={s}>• {s}</li>))}
+                  </ul>
+                </div>
+              </div>
+              <p className="border-l-2 border-gold/60 pl-4">{copy.lifePath.guidance}</p>
+            </>
+          )}
         </Chapter>
 
         {/* 02 — Expression */}
         <Chapter n="02" id="expression" title={`Expression ${core.expression} — What You're Built to Do`}>
-          {(() => {
-            const ec = EXPRESSION_COPY[core.expression] ?? EXPRESSION_COPY[1];
-            return (
-              <>
-                <p className="text-lg italic text-gold/90">"{ec.essence}"</p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
-                    <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Shadow pattern</h3>
-                    <p className="text-sm text-white/80">{ec.shadow}</p>
+          {narrative?.expression ? (
+            <NarrativeBlock text={narrative.expression} />
+          ) : (
+            (() => {
+              const ec = EXPRESSION_COPY[core.expression] ?? EXPRESSION_COPY[1];
+              return (
+                <>
+                  <p className="text-lg italic text-gold/90">"{ec.essence}"</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
+                      <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Shadow pattern</h3>
+                      <p className="text-sm text-white/80">{ec.shadow}</p>
+                    </div>
+                    <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
+                      <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Guidance</h3>
+                      <p className="text-sm text-white/80">{ec.guidance}</p>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
-                    <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Guidance</h3>
-                    <p className="text-sm text-white/80">{ec.guidance}</p>
-                  </div>
-                </div>
-              </>
-            );
-          })()}
+                </>
+              );
+            })()
+          )}
         </Chapter>
 
         {/* 03 — Soul Urge */}
         <Chapter n="03" id="soul-urge" title={`Soul Urge ${core.soulUrge} — What Your Heart Actually Wants`}>
-          {(() => {
-            const sc = SOUL_URGE_COPY[core.soulUrge] ?? SOUL_URGE_COPY[1];
-            return (
-              <>
-                <p className="text-lg italic text-gold/90">"{sc.essence}"</p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-magenta/20 bg-magenta/5 p-4">
-                    <h3 className="mb-2 text-sm uppercase tracking-widest text-magenta/80">Hidden shadow</h3>
-                    <p className="text-sm text-white/80">{sc.shadow}</p>
+          {narrative?.["soul-urge"] ? (
+            <NarrativeBlock text={narrative["soul-urge"]} />
+          ) : (
+            (() => {
+              const sc = SOUL_URGE_COPY[core.soulUrge] ?? SOUL_URGE_COPY[1];
+              return (
+                <>
+                  <p className="text-lg italic text-gold/90">"{sc.essence}"</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-magenta/20 bg-magenta/5 p-4">
+                      <h3 className="mb-2 text-sm uppercase tracking-widest text-magenta/80">Hidden shadow</h3>
+                      <p className="text-sm text-white/80">{sc.shadow}</p>
+                    </div>
+                    <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
+                      <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Guidance</h3>
+                      <p className="text-sm text-white/80">{sc.guidance}</p>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
-                    <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Guidance</h3>
-                    <p className="text-sm text-white/80">{sc.guidance}</p>
-                  </div>
-                </div>
-              </>
-            );
-          })()}
+                </>
+              );
+            })()
+          )}
         </Chapter>
 
         {/* 04 — Personality */}
         <Chapter n="04" id="personality" title={`Personality ${core.personality} — How the World Meets You`}>
-          {(() => {
-            const pc = PERSONALITY_COPY[core.personality] ?? PERSONALITY_COPY[1];
-            return (
-              <>
-                <p className="text-lg italic text-gold/90">"{pc.essence}"</p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
-                    <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">The blind spot</h3>
-                    <p className="text-sm text-white/80">{pc.shadow}</p>
+          {narrative?.personality ? (
+            <NarrativeBlock text={narrative.personality} />
+          ) : (
+            (() => {
+              const pc = PERSONALITY_COPY[core.personality] ?? PERSONALITY_COPY[1];
+              return (
+                <>
+                  <p className="text-lg italic text-gold/90">"{pc.essence}"</p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
+                      <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">The blind spot</h3>
+                      <p className="text-sm text-white/80">{pc.shadow}</p>
+                    </div>
+                    <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
+                      <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Guidance</h3>
+                      <p className="text-sm text-white/80">{pc.guidance}</p>
+                    </div>
                   </div>
-                  <div className="rounded-2xl border border-gold/20 bg-navy/40 p-4">
-                    <h3 className="mb-2 text-sm uppercase tracking-widest text-gold/80">Guidance</h3>
-                    <p className="text-sm text-white/80">{pc.guidance}</p>
-                  </div>
-                </div>
-              </>
-            );
-          })()}
+                </>
+              );
+            })()
+          )}
           <div className="mt-4 flex justify-center gap-8">
             <NumberRing label="Birth Day" number={core.birthDay} />
             <NumberRing label="Maturity" number={core.maturity} caption="active after age 35" />
@@ -451,6 +488,7 @@ export function ReportView({
 
         {/* 05 — Karmic */}
         <Chapter n="05" id="karmic" title="Your Karmic Architecture">
+          {narrative?.karmic && <NarrativeBlock text={narrative.karmic} />}
           {copy.karmicDebt ? (
             <div className="rounded-2xl border border-magenta/40 bg-magenta/10 p-5">
               <h3 className="font-display text-xl text-gold">{copy.karmicDebt.title}</h3>
@@ -483,6 +521,7 @@ export function ReportView({
 
         {/* 06 — Energetic Windows (timeline) */}
         <Chapter n="06" id="windows" title="Your 90-Day Energetic Windows">
+          {narrative?.windows && <NarrativeBlock text={narrative.windows} />}
           <p className="text-sm text-white/80">
             Days where your Personal Day resonates with your Life Path. Use them — your effort moves twice as far on these dates.
           </p>
@@ -511,6 +550,7 @@ export function ReportView({
         {/* 07 — Personal Year / Forecast (Ultimate only) */}
         {hasForecast ? (
           <Chapter n="07" id="forecast" title={`Personal Year ${cycles.personalYear} — ${copy.personalYear.title}`}>
+            {narrative?.forecast && <NarrativeBlock text={narrative.forecast} />}
             <p className="text-lg italic text-gold/90">{copy.personalYear.energy}</p>
             <p>{copy.personalYear.focus}</p>
             <PersonalYearScale year={cycles.personalYear} />
@@ -535,6 +575,7 @@ export function ReportView({
 
         {/* 08 — Pinnacles (horizontal timeline) */}
         <Chapter n="08" id="pinnacles" title="Pinnacles & Challenges">
+          {narrative?.pinnacles && <NarrativeBlock text={narrative.pinnacles} />}
           <p className="text-sm text-white/80">
             Life moves in four major chapters. Each Pinnacle is a guiding energy; each Challenge is the lesson it offers in exchange.
           </p>
@@ -562,6 +603,7 @@ export function ReportView({
         {/* 09 — Love Compatibility */}
         {hasLove ? (
           <Chapter n="09" id="love" title="Your Love Compatibility Map">
+            {narrative?.love && <NarrativeBlock text={narrative.love} />}
             <CompatibilitySpectrum
               harmony={compatibility.harmony}
               growth={compatibility.growth}
@@ -575,9 +617,13 @@ export function ReportView({
 
         {/* 10 — Closing */}
         <Chapter n="10" id="closing" title="Your Affirmation for This Year">
-          <p className="text-center font-display text-2xl italic text-gold sm:text-3xl">
-            "I move with the rhythm I was born to. Every number in this blueprint is on my side."
-          </p>
+          {narrative?.closing ? (
+            <p className="text-center font-display text-2xl italic text-gold sm:text-3xl">{narrative.closing}</p>
+          ) : (
+            <p className="text-center font-display text-2xl italic text-gold sm:text-3xl">
+              "I move with the rhythm I was born to. Every number in this blueprint is on my side."
+            </p>
+          )}
           <p className="mt-6 text-center text-xs text-white/60">
             Astrelo · numerology.astrelo.net · Generated {formatLongDate(meta.generatedAt)}
           </p>
