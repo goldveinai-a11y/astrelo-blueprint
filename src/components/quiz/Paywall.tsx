@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Lock, Shield, Star } from "lucide-react";
 import { XRayScroller } from "./widgets/XRayScroller";
 import { DynamicTimeline } from "./widgets/DynamicTimeline";
@@ -36,6 +36,13 @@ export function Paywall({
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [loading, setLoading] = useState(false);
   const create = useServerFn(createCheckoutSession);
+
+  useEffect(() => {
+    track("view_result", { life_path: lp });
+    // Fires once when the free teaser/result screen mounts — this is the pre-paywall
+    // "result page" step. Do not confuse with the post-purchase report (tracked as view_report).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const startCheckout = async () => {
     if (!email) {
