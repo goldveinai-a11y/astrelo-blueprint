@@ -16,6 +16,29 @@ type ApiResponse =
     }
   | { error: string };
 
+const GENERATING_MESSAGES = [
+  "Calculating your core numbers…",
+  "Cross-referencing your karmic patterns…",
+  "Mapping your energetic windows…",
+  "Writing your personal narrative…",
+  "Polishing the final details…",
+];
+
+function GeneratingMessage() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setI((prev) => (prev + 1) % GENERATING_MESSAGES.length);
+    }, 3500);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <p key={i} className="text-sm text-white/40 transition-opacity duration-500">
+      {GENERATING_MESSAGES[i]}
+    </p>
+  );
+}
+
 export const Route = createFileRoute("/report/$token")({
   head: () => ({
     meta: [
@@ -71,19 +94,15 @@ function ReportPage() {
   const isWaiting = !data || ("status" in data && (data.status === "pending" || data.status === "generating"));
 
   if (isWaiting) {
-    const message =
-      data && "status" in data && data.status === "generating"
-        ? "Preparing your personal blueprint…"
-        : "Almost there… Your payment is being confirmed.";
-    const sub =
-      data && "status" in data && data.status === "generating"
-        ? "This usually takes 10–20 seconds — we're writing it just for you."
-        : "This usually takes a few seconds.";
+    const isGenerating = data && "status" in data && data.status === "generating";
+    const message = isGenerating
+      ? "Preparing your personal blueprint…"
+      : "Almost there… Your payment is being confirmed.";
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-navy px-4 text-center text-white/80">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-gold/30 border-t-gold" />
         <p className="text-lg">{message}</p>
-        <p className="text-sm text-white/40">{sub}</p>
+        {isGenerating ? <GeneratingMessage /> : <p className="text-sm text-white/40">This usually takes a few seconds.</p>}
       </div>
     );
   }
