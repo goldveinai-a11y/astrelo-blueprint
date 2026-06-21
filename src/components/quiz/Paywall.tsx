@@ -9,6 +9,8 @@ import { createCheckoutSession } from "@/lib/checkout.functions";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
+import { TIER_PRICE_USD } from "@/lib/quiz/tiers";
 
 let stripePromiseCache: Promise<Stripe | null> | null = null;
 const getStripe = (pk: string) => {
@@ -40,6 +42,14 @@ export function Paywall({
       toast.error("Email is missing — please go back and enter your email.");
       return;
     }
+    const value = TIER_PRICE_USD[tier];
+    track("begin_checkout", {
+      currency: "USD",
+      value,
+      items: [
+        { item_id: tier, item_name: `Numerology Blueprint — ${tier}`, price: value, quantity: 1 },
+      ],
+    });
     setLoading(true);
     try {
       const res = await create({

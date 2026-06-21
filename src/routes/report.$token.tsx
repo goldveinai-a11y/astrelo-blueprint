@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ReportView, type Tier, type GeneratedNarrative } from "@/components/report/ReportView";
 import { buildReport } from "@/lib/report/buildReport";
+import { track } from "@/lib/analytics";
+import { TIER_PRICE_USD } from "@/lib/quiz/tiers";
 
 type ApiResponse =
   | { status: "pending" }
@@ -108,10 +110,11 @@ function ReportPage() {
   }
 
   if ("status" in data && data.status === "ready") {
-    const report = buildReport({ fullName: data.fullName, dob: data.dob });
     return (
-      <ReportView
-        report={report}
+      <ReadyReport
+        token={token}
+        fullName={data.fullName}
+        dob={data.dob}
         tier={data.tier}
         partnerName={data.partnerName ?? undefined}
         narrative={data.narrative}
@@ -123,5 +126,48 @@ function ReportPage() {
     <div className="flex min-h-screen items-center justify-center bg-navy px-4 text-center text-white/80">
       <p>Something went wrong loading your report. Reply to your confirmation email and we'll sort it out.</p>
     </div>
+  );
+}
+
+function ReadyReport({
+  token,
+  fullName,
+  dob,
+  tier,
+  partnerName,
+  narrative,
+}: {
+  token: string;
+  fullName: string;
+  dob: { day: number; month: number; year: number };
+  tier: Tier;
+  partnerName?: string;
+  narrative: GeneratedNarrative;
+}) {
+  useEffect(() => {
+    const key = `ga_purchase_${token}`;
+    if (typeof window === "undefined") return;
+    if (window.sessionStorage.getItem(key)) return;
+    const value = TIER_PRICE_USD[tier];
+    track("purchase", {
+      transaction_id: token,
+      currency: "USD",
+      value,
+      items: [
+        { item_id: tier, item_name: `Numerology Blueprint — ${tier}`, price: value, quantity: 1 },
+      ],
+    });
+    track("view_result", { transaction_id: token, tier });
+    window.sessionStorage.setItem(key, "1");
+  }, [token, tier]);
+
+  const report = buildReport({ fullName, dob });
+  return (
+    <ReportView
+      report={report}
+      tier={tier}
+      partnerName={partnerName}
+      narrative={narrative}
+    />
   );
 }
