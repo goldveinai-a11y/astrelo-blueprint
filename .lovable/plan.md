@@ -1,123 +1,21 @@
+Create a new public API route `src/routes/api/public/get-report.ts` that serves gated report data.
 
-# Как устроен отчёт Astrelo
+### Route
+- File: `src/routes/api/public/get-report.ts`
+- Endpoint: `GET /api/public/get-report?token=<token>`
 
-## Короткий ответ
-- **Astrology-API не нужен.** Нумерология — это чистая математика над датой рождения и буквами имени. Все числа считаются локально на сервере за миллисекунды. Внешние платные API (Astro-Seek, Prokerala, AstrologyAPI) нужны только если добавлять натальные карты по времени/месту рождения — для нумерологического квиза это избыточно.
-- **Отчёты реально кастомные**, но не «написаны заново для каждого». Структура шаблона одна, а ~80% содержимого — это переменные, подставленные из расчёта (числа, даты, описания, прогнозы). Каждый человек видит свой набор чисел и свои даты, поэтому два отчёта совпадут только у людей с одинаковой датой рождения и одинаковыми именами.
-- **Собирает отчёт наш собственный движок** на TanStack server functions: на входе `{ fullName, dob, email, quizAnswers }`, на выходе HTML-страница `/report/:id` + PDF.
+### Implementation
+1. Parse `token` from query params (`new URL(request.url).searchParams`).
+2. If `token` is missing, return `400` with JSON `{ error: "missing_token" }`.
+3. Dynamic-import `supabaseAdmin` from `@/integrations/supabase/client.server` inside the handler (same pattern as `stripe-webhook.ts`).
+4. Query `orders` table via `supabaseAdmin.from('orders').select('*').eq('token', token).single()`.
 
----
+### Response Logic
+- **No matching order** → `404` with `Content-Type: application/json` and body `{ error: "not_found" }`
+- **order.status !== 'paid'** → `200` with `Content-Type: application/json` and body `{ status: "pending" }`
+- **order.status === 'paid' AND generated_narrative is null** → `200` with `Content-Type: application/json` and body `{ status: "generating" }`
+- **order.status === 'paid' AND generated_narrative is present** → `200` with `Content-Type: application/json` and body `{ status: "ready", fullName, dob: { day, month, year }, tier, partnerName, narrative: generated_narrative }`
 
-## Что входит в отчёт (31 страница, как обещано в X-Ray Scroller)
-
-```text
-┌─ Cover ──────────────────────── 1 стр.
-│  Имя, дата, главные числа: Life Path, Expression, Soul Urge, Karmic Debt
-├─ Core Numbers ───────────────── 6 стр.
-│  • Life Path (1–9, 11/22/33) — миссия, сильные/слабые стороны
-│  • Expression / Destiny — из букв полного имени (Pythagorean)
-│  • Soul Urge — из гласных
-│  • Personality — из согласных
-│  • Birth Day — день рождения как самостоятельное число
-│  • Maturity Number — Life Path + Expression
-├─ Karmic Layer ───────────────── 3 стр.
-│  Karmic Debt 13/14/16/19 + Karmic Lessons (отсутствующие цифры в имени)
-├─ Personal Year / Month / Day ── 3 стр.
-│  Текущий 2026 + следующие 12 месяцев таблицей
-├─ 9-Year Pinnacle Cycles ─────── 4 стр.
-│  4 Pinnacles + 4 Challenges с датами начала/конца
-├─ Energetic Windows ──────────── 3 стр.
-│  Лучшие даты для денег / любви / решений на 90 дней (DynamicTimeline,
-│  но расширенный: ~20 дат с пояснениями)
-├─ Compatibility Map ──────────── 2 стр.
-│  С какими Life Path числами совместимость + что делать в конфликте
-├─ Quiz-Driven Insights ──────── 6 стр.
-│  Блоки, собранные из ответов квиза: главный страх, цель, уровень стресса,
-│  сфера запроса (деньги / любовь / здоровье) — каждая со своим разделом
-├─ Action Plan (30/60/90) ─────── 2 стр.
-│  Конкретные шаги, привязанные к Personal Month
-└─ Closing / Affirmation ──────── 1 стр.
-```
-
-## Кто и как это собирает
-
-```text
-                   ┌───────────────────────┐
-   Quiz finish ──▶ │  POST /api/checkout   │ ──▶ Stripe Checkout
-                   └───────────────────────┘
-                              │ webhook (checkout.session.completed)
-                              ▼
-                   ┌───────────────────────┐
-                   │  generateReport(...)  │  серверная функция
-                   │  src/lib/report/      │
-                   └───────────────────────┘
-                              │
-              ┌───────────────┼─────────────────┐
-              ▼               ▼                 ▼
-       numerology.ts    copy/templates.ts   pdf renderer
-       (чистые ф-ции)   (текстовые блоки    (@react-pdf/renderer
-                         per число)          или Puppeteer→PDF)
-                              │
-                              ▼
-                   ┌───────────────────────┐
-                   │  reports table +      │
-                   │  Lovable Cloud Storage│
-                   └───────────────────────┘
-                              │
-                              ▼
-                   email со ссылкой /report/:id
-```
-
-### Стек расчётов (всё локально, без внешних API)
-1. **Numerology engine** — расширяем уже существующий `src/lib/quiz/numerology.ts`:
-   - `lifePath`, `karmicDebt` — есть.
-   - добавить: `expression`, `soulUrge`, `personality`, `birthDay`, `maturity`,
-     `karmicLessons`, `personalYear/Month/Day`, `pinnacles`, `challenges`.
-   - Все формулы — Pythagorean numerology, открытые таблицы букв A=1…Z=8.
-2. **Content layer** — `src/lib/report/copy.ts`: по 9 текстовых блоков на каждый
-   тип числа (1–9 + 11/22/33). Один раз пишем — навсегда.
-3. **Quiz personalization** — ответы из 25-шагового квиза маппятся на 4–6
-   контентных слотов («твой главный блок: страх ошибки → раздел A3», и т.д.).
-4. **Energetic Windows** — генератор дат: для каждого дня в окне 90 дней
-   считаем Personal Day, выбираем дни с резонансом к Life Path → топ-20.
-
-### Кастомизация
-- Уникальный набор чисел: Life Path × Expression × Soul Urge × Personal Year
-  даёт ~9⁴ = 6 561 базовых комбинаций, с karmic-debt-флагами и ответами квиза
-  пространство уходит в десятки тысяч. Полностью идентичный отчёт получат
-  только два человека с одинаковыми ФИО, ДР и одинаковыми ответами квиза.
-- Имя и даты подставляются в каждом абзаце («Sarah, your Personal Year 2026
-  is a 5 — …»).
-
-### Формат доставки
-- HTML-страница `/report/:id` (защищена токеном из email-ссылки) — показывается
-  сразу после оплаты, можно листать в браузере.
-- PDF на 31 страницу — генерируется из той же React-разметки через
-  `@react-pdf/renderer` (работает в Cloudflare Worker, без бинарей).
-  Лежит в Lovable Cloud Storage, ссылка приходит письмом.
-
-### Что нужно добавить, чтобы это поехало
-1. Lovable Cloud (БД + Storage + email).
-2. Stripe (3 тарифа $19/$27/$33 — отличаются количеством разделов:
-   Basic = Core+Karmic, Plus = +Pinnacles+Windows, VIP = всё + 12-месячный таб).
-3. Серверная функция `generateReport` + webhook `/api/public/stripe-webhook`.
-4. Маршруты `/report/:id` и `/report/:id/pdf`.
-
-### Чего НЕ нужно
-- Astrology-API, ephemeris, время и место рождения, натальная карта.
-  Если когда-нибудь захотите добавить астрологический слой поверх нумерологии —
-  тогда подключим Prokerala/AstrologyAPI и попросим у пользователя время/место.
-  Для текущего ТЗ это вне scope.
-
----
-
-## Решения, которые нужны от тебя перед стройкой
-
-1. **Объём отчёта на старте** — делаем сразу все 31 страницу или MVP
-   (Core 6 + Karmic 3 + Personal Year 3 + Windows 3 = 15 стр) и потом расширяем?
-2. **PDF-движок** — `@react-pdf/renderer` (быстро, edge-friendly, ограниченный
-   layout) или HTML→PDF через внешний сервис типа PDFShift/DocRaptor (красивее,
-   $)?
-3. **Email-доставка** — Resend (рекомендую, простой) или SendGrid?
-4. **Тарифы** — подтверждаешь, что разница между $19/$27/$33 = разный объём
-   разделов отчёта, а не разный «уровень глубины»?
+### Safety
+- Set `Content-Type: application/json` on every response path.
+- No other files touched (routeTree.gen.ts auto-regenerates).

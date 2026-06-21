@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReportPreviewRouteImport } from './routes/report.preview'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as ApiPublicGetReportRouteImport } from './routes/api/public/get-report'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,34 +29,56 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicGetReportRoute = ApiPublicGetReportRouteImport.update({
+  id: '/api/public/get-report',
+  path: '/api/public/get-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/report/preview': typeof ReportPreviewRoute
+  '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/report/preview': typeof ReportPreviewRoute
+  '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/report/preview': typeof ReportPreviewRoute
+  '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/report/preview' | '/api/public/stripe-webhook'
+  fullPaths:
+    | '/'
+    | '/report/preview'
+    | '/api/public/get-report'
+    | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/report/preview' | '/api/public/stripe-webhook'
-  id: '__root__' | '/' | '/report/preview' | '/api/public/stripe-webhook'
+  to:
+    | '/'
+    | '/report/preview'
+    | '/api/public/get-report'
+    | '/api/public/stripe-webhook'
+  id:
+    | '__root__'
+    | '/'
+    | '/report/preview'
+    | '/api/public/get-report'
+    | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReportPreviewRoute: typeof ReportPreviewRoute
+  ApiPublicGetReportRoute: typeof ApiPublicGetReportRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
@@ -82,24 +105,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/get-report': {
+      id: '/api/public/get-report'
+      path: '/api/public/get-report'
+      fullPath: '/api/public/get-report'
+      preLoaderRoute: typeof ApiPublicGetReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReportPreviewRoute: ReportPreviewRoute,
+  ApiPublicGetReportRoute: ApiPublicGetReportRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
