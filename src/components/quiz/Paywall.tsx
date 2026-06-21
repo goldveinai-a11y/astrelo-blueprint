@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Lock, Shield, Star } from "lucide-react";
+import { Lock, Shield, Star, X } from "lucide-react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { XRayScroller } from "./widgets/XRayScroller";
 import { DynamicTimeline } from "./widgets/DynamicTimeline";
 import { PricingTiers, type Tier } from "./widgets/PricingTiers";
@@ -11,6 +12,25 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 import { TIER_PRICE_USD } from "@/lib/quiz/tiers";
+
+const FAQ_ITEMS = [
+  {
+    q: "Is this really a one-time payment?",
+    a: "Yes. You pay once — $19, $27, or $33 depending on tier. No subscription, no trial, no card kept on file. Your blueprint is yours forever.",
+  },
+  {
+    q: "How accurate is numerology?",
+    a: "Numerology is a reflective framework, not a scientific prediction. Most people find it gives language for patterns they already sense about themselves — take what resonates.",
+  },
+  {
+    q: "What if it's not for me?",
+    a: "We offer a money-back guarantee — see the guarantee details on this page.",
+  },
+  {
+    q: "Is my data private?",
+    a: "Yes. Your birth details and report are private and never sold or shared.",
+  },
+];
 
 let stripePromiseCache: Promise<Stripe | null> | null = null;
 const getStripe = (pk: string) => {
@@ -149,9 +169,41 @@ export function Paywall({
         <div className="flex items-center gap-1 font-semibold text-navy">
           <Shield className="h-3.5 w-3.5" /> Secure Checkout via Stripe
         </div>
+        <span className="text-border">|</span>
+        <div className="flex items-center gap-1 font-semibold text-navy">
+          <Shield className="h-3.5 w-3.5" /> Money-back guarantee
+        </div>
       </div>
 
       <PricingTiers selected={tier} onSelect={setTier} />
+
+      <div className="space-y-1.5 text-center text-[11px] text-muted-foreground">
+        <p className="flex items-center justify-center gap-1.5 font-semibold text-navy">
+          <Lock className="h-3 w-3" /> One-time payment — not a subscription. No trial, no recurring charges.
+        </p>
+        <p>A private numerologist reading typically costs $150–300+. Your personalized blueprint: from $19, yours forever.</p>
+        <p className="flex items-center justify-center gap-1.5">
+          <X className="h-3 w-3 shrink-0 text-destructive" />
+          <span>Not like other apps: <s>$1 trial → $48/month until you notice</s></span>
+        </p>
+      </div>
+
+      <Accordion type="single" collapsible className="rounded-2xl border border-border bg-card px-4 shadow-card">
+        {FAQ_ITEMS.map((item, i) => (
+          <AccordionItem
+            key={item.q}
+            value={`item-${i}`}
+            className={i === FAQ_ITEMS.length - 1 ? "border-b-0" : ""}
+          >
+            <AccordionTrigger className="text-left text-sm font-semibold text-navy">
+              {item.q}
+            </AccordionTrigger>
+            <AccordionContent className="text-xs text-muted-foreground">
+              {item.a}
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
 
       <button
         onClick={startCheckout}
@@ -162,8 +214,11 @@ export function Paywall({
         {loading ? "Preparing checkout…" : "Unlock My Blueprint & Secure My Dates 🧭"}
       </button>
 
-      <p className="pb-6 text-center text-[10px] text-muted-foreground">
+      <p className="pb-1 text-center text-[10px] text-muted-foreground">
         By continuing you agree to our Terms & Privacy Policy. Astrelo · numerology.astrelo.net
+      </p>
+      <p className="pb-6 text-center text-[9px] text-muted-foreground/70">
+        For insight and entertainment purposes only — not professional, financial, or medical advice. Results vary by individual.
       </p>
     </div>
   );
