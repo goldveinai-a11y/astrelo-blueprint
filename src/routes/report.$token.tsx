@@ -157,7 +157,7 @@ function ReadyReport({
         { item_id: tier, item_name: `Numerology Blueprint — ${tier}`, price: value, quantity: 1 },
       ],
     });
-    track("view_result", { transaction_id: token, tier });
+    track("view_report", { transaction_id: token, tier });
     window.sessionStorage.setItem(key, "1");
   }, [token, tier]);
 
