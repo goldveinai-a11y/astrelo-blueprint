@@ -95,6 +95,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" },
       { rel: "stylesheet", href: appCss },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Astrelo",
+          url: "https://numerology.astrelo.net",
+          description: "Astrelo creates personalised numerology blueprints that decode the hidden mathematical sequence of your birth date.",
+          logo: "https://numerology.astrelo.net/favicon.ico",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Astrelo",
+          url: "https://numerology.astrelo.net",
+          description: "Decode the hidden mathematical sequence of your birth date with Astrelo's personalised numerology blueprint.",
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
