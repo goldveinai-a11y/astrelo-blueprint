@@ -39,8 +39,15 @@ export async function generateNarrativeForOrder(token: string): Promise<void> {
 
   const systemPrompt = `You are writing a personalized numerology report for ${fullName}. Warm, direct, mystical-but-grounded tone, second person ("you"). Write all 10 chapters as one cohesive narrative — cross-reference how the numbers relate to each other, don't write isolated paragraphs. Each chapter 120-200 words. Output ONLY valid JSON, no markdown fences, no preamble, exactly this shape: {"life-path": string, "expression": string, "soul-urge": string, "personality": string, "karmic": string, "windows": string, "forecast": string, "pinnacles": string, "love": string, "closing": string}`;
 
+  const dobLabel = new Date(Date.UTC(dob.year, dob.month - 1, dob.day)).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
   const userPrompt = `Name: ${fullName}
-DOB: ${dob.day}/${dob.month}/${dob.year}
+DOB: ${dobLabel}
 ${partnerName ? `Partner name (for Love Compatibility chapter): ${partnerName}` : "No partner given — write Love Compatibility about general relationship patterns for this number combination."}
 
 Core numbers — Life Path: ${report.core.lifePath}, Expression: ${report.core.expression}, Soul Urge: ${report.core.soulUrge}, Personality: ${report.core.personality}, Birth Day: ${report.core.birthDay}, Maturity: ${report.core.maturity}
