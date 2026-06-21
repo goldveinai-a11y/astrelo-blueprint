@@ -75,9 +75,15 @@ function ReportPage() {
       data && "status" in data && data.status === "generating"
         ? "Preparing your personal blueprint…"
         : "Almost there… Your payment is being confirmed.";
+    const sub =
+      data && "status" in data && data.status === "generating"
+        ? "This usually takes 10–20 seconds — we're writing it just for you."
+        : "This usually takes a few seconds.";
     return (
-      <div className="flex min-h-screen items-center justify-center bg-navy px-4 text-center text-white/80">
-        <p>{message}</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-navy px-4 text-center text-white/80">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-gold/30 border-t-gold" />
+        <p className="text-lg">{message}</p>
+        <p className="text-sm text-white/40">{sub}</p>
       </div>
     );
   }
