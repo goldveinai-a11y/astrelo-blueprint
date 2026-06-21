@@ -288,6 +288,7 @@ function SimpleInput({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }}
         placeholder={placeholder}
+        aria-label={title}
         className="h-14 w-full rounded-2xl border-2 border-border bg-card px-5 text-base font-medium outline-none transition-colors focus:border-violet"
       />
       <button
