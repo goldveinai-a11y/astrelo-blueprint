@@ -18,6 +18,7 @@ export function DateOfBirthPicker({ onChange }: { onChange: (d: DOB | undefined)
     <select
       value={value}
       onChange={(e) => onValue(e.target.value)}
+      aria-label={placeholder}
       className="h-14 w-full rounded-2xl border-2 border-border bg-card px-3 text-sm font-medium text-foreground outline-none transition-colors focus:border-violet"
     >
       <option value="">{placeholder}</option>
