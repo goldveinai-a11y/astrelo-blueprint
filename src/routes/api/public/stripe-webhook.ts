@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import Stripe from 'stripe'
 import { generateNarrativeForOrder } from '@/lib/report/generateNarrative.server'
+import { sendReportEmail } from '@/lib/report/sendReportEmail.server'
 
 export const Route = createFileRoute('/api/public/stripe-webhook')({
   server: {
@@ -59,7 +60,15 @@ export const Route = createFileRoute('/api/public/stripe-webhook')({
         }
 
         try {
-          await generateNarrativeForOrder(token)
+          const generated = await generateNarrativeForOrder(token)
+          if (generated) {
+            try {
+              await sendReportEmail(token)
+            } catch (e) {
+              console.error('[stripe-webhook] Email send failed:', (e as Error).message)
+              // Don't fail the webhook for this — order is paid, narrative is saved either way
+            }
+          }
         } catch (e) {
           console.error('[stripe-webhook] Narrative generation failed:', (e as Error).message)
           // Don't fail the webhook for this — order is paid either way, report route can retry generation later
