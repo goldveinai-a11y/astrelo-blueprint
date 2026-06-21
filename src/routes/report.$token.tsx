@@ -44,7 +44,10 @@ function GeneratingMessage() {
 export const Route = createFileRoute("/report/$token")({
   head: () => ({
     meta: [
-      { title: "Your Numerology Blueprint — Astrelo" },
+      { title: "Your Personal Numerology Blueprint Report — Astrelo" },
+      { name: "description", content: "Your private, personalised Astrelo numerology blueprint report — generated from your birth date and unique to you." },
+      { property: "og:title", content: "Your Personal Numerology Blueprint Report — Astrelo" },
+      { property: "og:description", content: "Your private, personalised Astrelo numerology blueprint report — generated from your birth date and unique to you." },
       { name: "robots", content: "noindex" },
     ],
   }),
