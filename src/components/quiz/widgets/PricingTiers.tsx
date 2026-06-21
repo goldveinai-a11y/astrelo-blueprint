@@ -14,14 +14,14 @@ const TIERS: Array<{
     id: "core",
     badge: "💰 Core",
     price: "$19",
-    features: ["31-Page Core Report", "Wealth & Karmic Codes"],
+    features: ["10-Chapter Core Report", "Wealth & Karmic Codes"],
   },
   {
     id: "popular",
     badge: "🔥 Most Popular",
     price: "$27",
     features: [
-      "31-Page Core Report",
+      "10-Chapter Core Report",
       "Wealth & Karmic Codes",
       "Love Compatibility (+ Partner's Name)",
     ],
@@ -32,7 +32,7 @@ const TIERS: Array<{
     badge: "👑 Ultimate",
     price: "$33",
     features: [
-      "31-Page Core Report",
+      "10-Chapter Core Report",
       "Wealth & Karmic Codes",
       "Love Compatibility (+ Partner's Name)",
       "2026 Personal Year Full Month Forecast",
