@@ -188,7 +188,7 @@ function Hero({ dob, setDob, onContinue }: { dob: DOB | undefined; setDob: (d: D
   return (
     <div className="quiz-fade-in flex flex-col">
       <div className="mx-auto mt-2 mb-4 flex items-center gap-2 rounded-full bg-cosmic px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white">
-        <Star className="h-3 w-3 fill-gold text-gold" /> Top numerology app · 4.8
+        <Star className="h-3 w-3 fill-gold text-gold" /> Top numerology quiz · 4.8
       </div>
       <div className="relative mx-auto mb-6 aspect-square w-full max-w-[320px] overflow-hidden rounded-3xl shadow-card">
         <img src={heroImg} alt="Cosmic numerology" className="h-full w-full object-cover" />
