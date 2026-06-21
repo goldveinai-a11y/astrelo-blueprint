@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ReportView, type Tier, type GeneratedNarrative } from "@/components/report/ReportView";
 import { buildReport } from "@/lib/report/buildReport";
+import { track } from "@/lib/analytics";
+import { TIER_PRICE_USD } from "@/lib/quiz/tiers";
 
 type ApiResponse =
   | { status: "pending" }
@@ -108,10 +110,11 @@ function ReportPage() {
   }
 
   if ("status" in data && data.status === "ready") {
-    const report = buildReport({ fullName: data.fullName, dob: data.dob });
     return (
-      <ReportView
-        report={report}
+      <ReadyReport
+        token={token}
+        fullName={data.fullName}
+        dob={data.dob}
         tier={data.tier}
         partnerName={data.partnerName ?? undefined}
         narrative={data.narrative}
