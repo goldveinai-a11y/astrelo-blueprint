@@ -53,7 +53,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       customer_email: data.email,
       metadata: { token, tier: data.tier },
       payment_intent_data: { metadata: { token, tier: data.tier } },
-      return_url: `${process.env.PUBLIC_SITE_URL ?? "https://numerology.astrelo.net"}/report/preview?token=${token}`,
+      return_url: `${process.env.PUBLIC_SITE_URL ?? "https://numerology.astrelo.net"}/report/${token}`,
     });
 
     return {
