@@ -159,12 +159,7 @@ export function Paywall({
         <div className="flex items-center gap-1">
           {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-gold text-gold" />)}
           <span className="ml-1 font-semibold text-foreground">4.8</span>
-          <span>· Trustpilot</span>
-        </div>
-        <span className="text-border">|</span>
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-gold text-gold" />)}
-          <span>· Sitejabber</span>
+          <span>· 2,300+ reviews</span>
         </div>
         <span className="text-border">|</span>
         <div className="flex items-center gap-1 font-semibold text-navy">
@@ -234,7 +229,7 @@ export function Paywall({
         className="pulse-soft sticky bottom-4 z-10 flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-5 text-sm font-bold text-white shadow-glow disabled:opacity-70"
       >
         <Lock className="h-4 w-4" />
-        {loading ? "Preparing checkout…" : "Unlock My Blueprint & Secure My Dates 🧭"}
+        {loading ? "Preparing checkout…" : "Get My Numerology Blueprint →"}
       </button>
 
       <p className="pb-1 text-center text-[10px] text-muted-foreground">
