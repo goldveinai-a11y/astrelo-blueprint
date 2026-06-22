@@ -7,6 +7,8 @@ const TIERS: Array<{
   id: Tier;
   badge: string;
   price: string;
+  anchor: string;
+  dailyRate: string;
   features: string[];
   highlight?: boolean;
 }> = [
@@ -14,16 +16,23 @@ const TIERS: Array<{
     id: "core",
     badge: "💰 Core",
     price: "$19",
-    features: ["10-Chapter Core Report", "Wealth & Karmic Codes"],
+    anchor: "$89",
+    dailyRate: "Less than one coffee — yours forever",
+    features: [
+      "Your complete number system, fully decoded",
+      "Why money patterns keep repeating — and where they break",
+    ],
   },
   {
     id: "popular",
     badge: "🔥 Most Popular",
     price: "$27",
+    anchor: "$89",
+    dailyRate: "Less than one coffee — yours forever",
     features: [
-      "10-Chapter Core Report",
-      "Wealth & Karmic Codes",
-      "Love Compatibility (+ Partner's Name)",
+      "Your complete number system, fully decoded",
+      "Why money patterns keep repeating — and where they break",
+      "Your exact compatibility map, built for your relationship",
     ],
     highlight: true,
   },
@@ -31,11 +40,13 @@ const TIERS: Array<{
     id: "ultimate",
     badge: "👑 Ultimate",
     price: "$33",
+    anchor: "$89",
+    dailyRate: "Less than one coffee — yours forever",
     features: [
-      "10-Chapter Core Report",
-      "Wealth & Karmic Codes",
-      "Love Compatibility (+ Partner's Name)",
-      "2026 Personal Year Full Month Forecast",
+      "Your complete number system, fully decoded",
+      "Why money patterns keep repeating — and where they break",
+      "Your exact compatibility map, built for your relationship",
+      "Month-by-month guidance for the next 12 months",
     ],
   },
 ];
@@ -69,8 +80,14 @@ export function PricingTiers({
             )}
             <div className="flex items-baseline justify-between">
               <span className="text-sm font-bold text-navy">{t.badge}</span>
-              <span className="text-2xl font-bold text-navy">{t.price}</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-sm text-muted-foreground line-through">{t.anchor}</span>
+                <span className="text-2xl font-bold text-navy">{t.price}</span>
+              </div>
             </div>
+            {active && (
+              <p className="mt-0.5 text-right text-[10px] text-violet/80">{t.dailyRate}</p>
+            )}
             <ul className="mt-3 space-y-1.5">
               {t.features.map((f) => (
                 <li key={f} className="flex items-start gap-2 text-xs text-foreground">
