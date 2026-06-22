@@ -25,7 +25,17 @@ export function XRayScroller({ name }: { name: string }) {
     <div className="-mx-5">
       <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="snap-center shrink-0 w-56 overflow-hidden rounded-2xl border border-border bg-cosmic shadow-card">
-          <img src={reportCover} alt="Report cover" loading="lazy" className="h-72 w-full object-cover" />
+          <div className="relative">
+            <img src={reportCover} alt="Report cover" loading="lazy" className="h-72 w-full object-cover" />
+            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-end pb-4 pt-8"
+              style={{ background: "linear-gradient(to top, rgba(10,24,59,0.85) 60%, transparent)" }}>
+              <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/60">Personal Blueprint</p>
+              <p className="mt-0.5 text-center text-sm font-bold leading-tight"
+                style={{ color: "var(--gold)", textShadow: "0 0 12px rgba(243,186,37,0.6)" }}>
+                {name}
+              </p>
+            </div>
+          </div>
           <div className="px-3 py-3 text-center">
             <p className="text-[10px] uppercase tracking-widest text-white/70">Astrelo Numerology</p>
             <p className="mt-1 text-sm font-bold text-white">{name}'s 10-Chapter Blueprint</p>
