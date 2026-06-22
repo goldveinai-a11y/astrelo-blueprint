@@ -14,6 +14,7 @@ import { Route as ReportPreviewRouteImport } from './routes/report.preview'
 import { Route as ReportTokenRouteImport } from './routes/report.$token'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 import { Route as ApiPublicGetReportRouteImport } from './routes/api/public/get-report'
+import { Route as ApiPublicGenerateTeaserRouteImport } from './routes/api/public/generate-teaser'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,11 +41,17 @@ const ApiPublicGetReportRoute = ApiPublicGetReportRouteImport.update({
   path: '/api/public/get-report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicGenerateTeaserRoute = ApiPublicGenerateTeaserRouteImport.update({
+  id: '/api/public/generate-teaser',
+  path: '/api/public/generate-teaser',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/report/$token': typeof ReportTokenRoute
   '/report/preview': typeof ReportPreviewRoute
+  '/api/public/generate-teaser': typeof ApiPublicGenerateTeaserRoute
   '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/report/$token': typeof ReportTokenRoute
   '/report/preview': typeof ReportPreviewRoute
+  '/api/public/generate-teaser': typeof ApiPublicGenerateTeaserRoute
   '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/report/$token': typeof ReportTokenRoute
   '/report/preview': typeof ReportPreviewRoute
+  '/api/public/generate-teaser': typeof ApiPublicGenerateTeaserRoute
   '/api/public/get-report': typeof ApiPublicGetReportRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
@@ -69,6 +78,7 @@ export interface FileRouteTypes {
     | '/'
     | '/report/$token'
     | '/report/preview'
+    | '/api/public/generate-teaser'
     | '/api/public/get-report'
     | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -76,6 +86,7 @@ export interface FileRouteTypes {
     | '/'
     | '/report/$token'
     | '/report/preview'
+    | '/api/public/generate-teaser'
     | '/api/public/get-report'
     | '/api/public/stripe-webhook'
   id:
@@ -83,6 +94,7 @@ export interface FileRouteTypes {
     | '/'
     | '/report/$token'
     | '/report/preview'
+    | '/api/public/generate-teaser'
     | '/api/public/get-report'
     | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
@@ -91,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ReportTokenRoute: typeof ReportTokenRoute
   ReportPreviewRoute: typeof ReportPreviewRoute
+  ApiPublicGenerateTeaserRoute: typeof ApiPublicGenerateTeaserRoute
   ApiPublicGetReportRoute: typeof ApiPublicGetReportRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
@@ -132,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGetReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/generate-teaser': {
+      id: '/api/public/generate-teaser'
+      path: '/api/public/generate-teaser'
+      fullPath: '/api/public/generate-teaser'
+      preLoaderRoute: typeof ApiPublicGenerateTeaserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -139,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ReportTokenRoute: ReportTokenRoute,
   ReportPreviewRoute: ReportPreviewRoute,
+  ApiPublicGenerateTeaserRoute: ApiPublicGenerateTeaserRoute,
   ApiPublicGetReportRoute: ApiPublicGetReportRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
