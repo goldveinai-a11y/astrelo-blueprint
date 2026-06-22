@@ -4,10 +4,12 @@ import { ProgressBar } from "./widgets/ProgressBar";
 import { OptionCard } from "./widgets/OptionCard";
 import { StressSlider } from "./widgets/StressSlider";
 import { DateOfBirthPicker } from "./widgets/DateOfBirthPicker";
-import { AILoader } from "./widgets/AILoader";
+import { AILoader, type TeaserPayload } from "./widgets/AILoader";
 import { MilestoneScreen } from "./MilestoneScreen";
 import { Paywall } from "./Paywall";
+import { BarnumReveal } from "./BarnumReveal";
 import { track } from "@/lib/analytics";
+import { lifePath, zodiacSign } from "@/lib/quiz/numerology";
 import type { Answers } from "@/lib/quiz/types";
 import type { DOB } from "@/lib/quiz/numerology";
 import heroImg from "@/assets/quiz/hero-cosmic.jpg";
@@ -36,6 +38,7 @@ type Step =
   | { kind: "name" }
   | { kind: "email" }
   | { kind: "loader" }
+  | { kind: "barnum_reveal" }
   | { kind: "milestone"; n: 1 | 2 | 3 | 4 }
   | { kind: "paywall" };
 
@@ -82,6 +85,7 @@ const STEPS: Step[] = [
   { kind: "name" },
   { kind: "email" },
   { kind: "loader" },
+  { kind: "barnum_reveal" },
   { kind: "paywall" },
 ];
 
@@ -98,6 +102,7 @@ export function Quiz() {
   const [dob, setDob] = useState<DOB | undefined>();
   const [nameInput, setNameInput] = useState("");
   const [emailInput, setEmailInput] = useState("");
+  const [teaserParagraph, setTeaserParagraph] = useState<string | null>(null);
 
   const step = STEPS[idx];
   const next = () => setIdx((i) => Math.min(STEPS.length - 1, i + 1));
@@ -114,7 +119,7 @@ export function Quiz() {
   }, [idx]);
 
   const progress = useMemo(() => (idx === 0 ? 0 : (idx / (STEPS.length - 1)) * 100), [idx]);
-  const showHeader = step.kind !== "hero" && step.kind !== "loader" && step.kind !== "paywall";
+  const showHeader = step.kind !== "hero" && step.kind !== "loader" && step.kind !== "barnum_reveal" && step.kind !== "paywall";
 
   const select = (key: keyof Answers, value: string | number) => {
     setAnswers((a) => ({ ...a, [key]: value }));
@@ -191,7 +196,33 @@ export function Quiz() {
           />
         )}
 
-        {step.kind === "loader" && <AILoader name={answers.name || "you"} onDone={next} />}
+        {step.kind === "loader" && answers.dob && (
+          <AILoader
+            name={answers.name || "you"}
+            onDone={next}
+            teaserPayload={{
+              name: answers.name || "you",
+              dobDay: answers.dob.day,
+              dobMonth: answers.dob.month,
+              dobYear: answers.dob.year,
+              zodiac: zodiacSign(answers.dob.month, answers.dob.day),
+              lifePathNum: lifePath(answers.dob),
+              focus: answers.focus || "",
+              relationship: answers.relationship || "",
+              karma: answers.karma || "",
+              financialStress: answers.financialStress ?? 5,
+            }}
+            onTeaserReady={setTeaserParagraph}
+          />
+        )}
+
+        {step.kind === "barnum_reveal" && (
+          <BarnumReveal
+            name={answers.name || "you"}
+            paragraph={teaserParagraph}
+            onContinue={next}
+          />
+        )}
 
         {step.kind === "paywall" && answers.dob && (
           <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} />
