@@ -20,7 +20,7 @@ function PieChart() {
 }
 
 export function XRayScroller({ name }: { name: string }) {
-  const pages = Array.from({ length: 12 }, (_, i) => i + 1);
+  const pages = Array.from({ length: 16 }, (_, i) => i + 1);
   return (
     <div className="-mx-5">
       <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -44,7 +44,7 @@ export function XRayScroller({ name }: { name: string }) {
 
         {pages.map((p) => {
           const isWealth = p === 4;
-          const isLove = p === 12;
+          const isLove = p === 16;
           return (
             <div key={p} className="relative snap-center shrink-0 w-56 overflow-hidden rounded-2xl border border-border bg-card shadow-card">
               <div className="h-full p-4">
