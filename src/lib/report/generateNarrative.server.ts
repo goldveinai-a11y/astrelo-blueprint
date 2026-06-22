@@ -71,12 +71,25 @@ TONE: The voice of a perceptive, warm friend who has studied this person specifi
 
 TECHNIQUES TO USE IN EVERY CHAPTER:
 1. Rainbow Ruse — name an outer quality the person projects AND the inner tension beneath it. "You appear X, but the people closest to you rarely see Y."
-2. Life Path Archetype — LP${report.core.lifePath} carries a specific pattern: ${report.core.lifePath === 1 ? "the pioneer who takes on others' work rather than watch it done poorly — and burns out from it" : report.core.lifePath === 7 ? "the analyst who thinks several layers deeper than the room — often mistaken for distant when actually just thorough" : report.core.lifePath === 8 ? "the strategist for whom ambition is an operating system, not a choice" : report.core.lifePath === 9 ? "the humanitarian whose wisdom runs ahead of their willingness to apply it to themselves" : report.core.lifePath === 2 ? "the quiet force whose influence runs deeper than they ever show" : report.core.lifePath === 3 ? "the communicator whose best work happens when they stop editing themselves before they begin" : report.core.lifePath === 4 ? "the builder whose reliability is real, but whose rigidity is the one thing that costs them most" : report.core.lifePath === 5 ? "the freedom-seeker for whom the cage is never the bars but the belief the bars are there" : report.core.lifePath === 6 ? "the nurturer whose care runs deepest for those who rarely notice how much it costs" : "the intuitive with perception that borders on uncomfortable"}.
+2. Life Path Archetype — LP${report.core.lifePath} carries a specific pattern: ${
+    report.core.lifePath === 1 ? "the pioneer driven by a secret fear of failure that makes them ultra-driven — they move before others finish deciding and carry natural authority, but pay for it with isolation and the slow resentment of always carrying what others won't" :
+    report.core.lifePath === 2 ? "the peacemaker whose subconscious reads rooms others miss — they bring harmony to everything they touch but suffer from never putting their own needs first, staying silent when silence costs them most" :
+    report.core.lifePath === 3 ? "the communicator who sees opportunity everywhere and draws people effortlessly — brilliant at sparking ideas but avoids real intimacy, lives so much in the moment that depth feels like a threat" :
+    report.core.lifePath === 4 ? "the builder whose consistent steady effort is their superpower — they speak with authority others accept, but deciding what is 'right' and closing the door on anything new is the one thing that costs them their ceiling" :
+    report.core.lifePath === 5 ? "the freedom-seeker who learns by living and cannot be contained by routine — adaptable and magnetic, but the moment anything loses its spark, they are already gone" :
+    report.core.lifePath === 6 ? "the nurturer who takes on the world's weight as if it were their own — magnetic in their warmth, giving most freely to people who notice it least, their greatest struggle is receiving as naturally as they give" :
+    report.core.lifePath === 7 ? "the analyst who thinks several layers below the surface conversation — appears distant when actually working at a depth most people don't reach; knows things before they can explain why, and is rarely wrong" :
+    report.core.lifePath === 8 ? "the strategist for whom ambition is an operating system not a choice — projects authority that makes others trust their judgment instinctively, but quietly at war with their own relationship to power and what success is actually supposed to feel like" :
+    report.core.lifePath === 9 ? "the humanitarian whose wisdom outpaces their willingness to apply it to themselves — cares about the larger picture more than personal gain, yet the gap between what they accomplish and what they feel about those accomplishments never fully closes" :
+    report.core.lifePath === 11 ? "the intuitive with perception that borders on uncomfortable — senses things before they can be proven, carries a spiritual charge others feel without understanding; the gap between their inner knowing and outer life is their lifelong work" :
+    report.core.lifePath === 22 ? "the master builder whose vision operates at a scale most cannot hold in mind — practical genius paired with spiritual reach, but the weight of knowing exactly what they could build if they committed fully can become its own obstacle" :
+    "the master teacher whose influence reshapes people without them realizing — their highest expression is not what they do but what others become near them"
+  }.
 3. Cross-referencing — actively connect numbers. E.g. "your LP${report.core.lifePath} combined with Expression ${report.core.expression} means..."
 4. Specificity anchors — reference the actual numbers (${report.core.lifePath}, ${report.core.expression}, ${report.core.soulUrge}) in the text so it feels calculated, not generic.
 5. Forward hooks — end each chapter with a tension or question that pulls the reader to the next.
 
-CHAPTER LENGTH: 220-300 words each. Flowing prose paragraphs, no bullet points inside the narrative.
+CHAPTER LENGTH: 180-220 words each. Flowing prose paragraphs, no bullet points inside the narrative.
 
 FORBIDDEN: "unique potential", "harness your energy", "the universe has a plan", "journey", "authentic self", "unlock your", "cosmic blueprint", "dive deep into". No clichés.
 
@@ -118,7 +131,7 @@ Write the 10 chapters as the JSON object.`;
     headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 6500,
+      max_tokens: 4500,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
