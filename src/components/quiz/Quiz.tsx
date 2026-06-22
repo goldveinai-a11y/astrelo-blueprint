@@ -104,25 +104,31 @@ export function Quiz() {
   const [emailInput, setEmailInput] = useState("");
   const [teaserParagraph, setTeaserParagraph] = useState<string | null>(null);
 
+  const QUIZ_STEPS_COUNT = STEPS.filter(s => s.kind === "choice" || s.kind === "slider" || s.kind === "name" || s.kind === "email" || s.kind === "hero").length;
+
   const step = STEPS[idx];
   const next = () => setIdx((i) => Math.min(STEPS.length - 1, i + 1));
   const back = () => setIdx((i) => Math.max(0, i - 1));
 
   useEffect(() => {
-    const stepKey = "key" in step ? step.key : "n" in step ? `milestone_${step.n}` : step.kind;
-    track("quiz_step_view", {
-      step_index: idx,
-      step_total: STEPS.length,
-      step_kind: step.kind,
-      step_key: stepKey,
-    });
+    if (step.kind === "hero") track("quiz_started", {});
+    if (step.kind === "loader") track("quiz_completed", {});
   }, [idx]);
+
+  const trackAnswer = (questionId: string, value: string | number) => {
+    const pct = Math.round((idx / STEPS.length) * 100);
+    track("quiz_question_answered", { question_id: questionId, value, step_index: idx });
+    if (pct >= 25 && pct < 50) track("quiz_progress_milestone", { pct: 25 });
+    else if (pct >= 50 && pct < 75) track("quiz_progress_milestone", { pct: 50 });
+    else if (pct >= 75) track("quiz_progress_milestone", { pct: 75 });
+  };
 
   const progress = useMemo(() => (idx === 0 ? 0 : (idx / (STEPS.length - 1)) * 100), [idx]);
   const showHeader = step.kind !== "hero" && step.kind !== "loader" && step.kind !== "barnum_reveal" && step.kind !== "paywall";
 
   const select = (key: keyof Answers, value: string | number) => {
     setAnswers((a) => ({ ...a, [key]: value }));
+    trackAnswer(String(key), value);
     setTimeout(next, 220);
   };
 
@@ -148,7 +154,7 @@ export function Quiz() {
       <main className="flex-1 px-5 pb-10 pt-4">
         {step.kind === "hero" && <Hero
           dob={dob} setDob={setDob}
-          onContinue={() => { if (dob) { setAnswers((a) => ({ ...a, dob })); next(); } }}
+          onContinue={() => { if (dob) { setAnswers((a) => ({ ...a, dob })); trackAnswer("dob", `${dob.month}/${dob.day}/${dob.year}`); next(); } }}
         />}
 
         {step.kind === "choice" && (
@@ -156,7 +162,7 @@ export function Quiz() {
         )}
 
         {step.kind === "slider" && (
-          <SliderView key={idx} step={step} onConfirm={(v) => { setAnswers((a) => ({ ...a, [step.key]: v })); next(); }} />
+          <SliderView key={idx} step={step} onConfirm={(v) => { setAnswers((a) => ({ ...a, [step.key]: v })); trackAnswer(String(step.key), v); next(); }} />
         )}
 
         {step.kind === "milestone" && (
@@ -172,7 +178,7 @@ export function Quiz() {
             value={nameInput}
             onChange={setNameInput}
             cta="Continue"
-            onSubmit={() => { if (nameInput.trim()) { setAnswers((a) => ({ ...a, name: nameInput.trim() })); next(); } }}
+            onSubmit={() => { if (nameInput.trim()) { setAnswers((a) => ({ ...a, name: nameInput.trim() })); trackAnswer("name", nameInput.trim()); next(); } }}
           />
         )}
 
@@ -189,6 +195,7 @@ export function Quiz() {
             onSubmit={() => {
               if (/.+@.+\..+/.test(emailInput)) {
                 setAnswers((a) => ({ ...a, email: emailInput.trim() }));
+                trackAnswer("email", "submitted");
                 track("generate_lead", { method: "quiz_email_capture" });
                 next();
               }
