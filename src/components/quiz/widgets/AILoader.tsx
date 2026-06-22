@@ -1,6 +1,29 @@
 import { useEffect, useState } from "react";
 
-export function AILoader({ name, onDone }: { name: string; onDone: () => void }) {
+export type TeaserPayload = {
+  name: string;
+  dobDay: number;
+  dobMonth: number;
+  dobYear: number;
+  zodiac: string;
+  lifePathNum: number;
+  focus: string;
+  relationship: string;
+  karma: string;
+  financialStress: number;
+};
+
+export function AILoader({
+  name,
+  onDone,
+  teaserPayload,
+  onTeaserReady,
+}: {
+  name: string;
+  onDone: () => void;
+  teaserPayload?: TeaserPayload;
+  onTeaserReady?: (paragraph: string) => void;
+}) {
   const stages = [
     { p: 12, t: `Isolating your Life Path Number for ${name}…` },
     { p: 38, t: "Building the Pythagorean Square Matrix…" },
@@ -8,6 +31,25 @@ export function AILoader({ name, onDone }: { name: string; onDone: () => void })
     { p: 100, t: `Success! Your Numerology Blueprint for ${name} is ready.` },
   ];
   const [step, setStep] = useState(0);
+
+  // Fire teaser generation immediately on mount — runs in background during animation
+  useEffect(() => {
+    if (!teaserPayload || !onTeaserReady) return;
+    fetch("/api/public/generate-teaser", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(teaserPayload),
+    })
+      .then((r) => r.json())
+      .then((data: { paragraph?: string }) => {
+        if (data.paragraph) onTeaserReady(data.paragraph);
+      })
+      .catch(() => {
+        // Fallback: empty string — BarnumReveal handles gracefully
+        onTeaserReady("");
+      });
+  }, []);
+
   useEffect(() => {
     if (step >= stages.length) {
       const t = setTimeout(onDone, 600);
