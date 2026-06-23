@@ -33,6 +33,7 @@ type SliderStep = {
 };
 type Step =
   | { kind: "hero" }
+  | { kind: "dob" }
   | ChoiceStep
   | SliderStep
   | { kind: "name" }
@@ -44,6 +45,7 @@ type Step =
 
 const STEPS: Step[] = [
   { kind: "hero" },
+  { kind: "dob" },
   { kind: "choice", key: "gender", question: "Select your biological or energetic alignment:", options: ["Female", "Male", "Non-binary"] },
   { kind: "choice", key: "relationship", question: "What is your current relationship status?", options: ["Single", "In a relationship", "Married", "It's complicated"] },
   { kind: "choice", key: "focus", question: "What is your primary focus for the next 6 months?", options: [
@@ -152,10 +154,22 @@ export function Quiz() {
       )}
 
       <main className="flex-1 px-5 pb-10 pt-4">
-        {step.kind === "hero" && <Hero
-          dob={dob} setDob={setDob}
-          onContinue={() => { if (dob) { setAnswers((a) => ({ ...a, dob })); trackAnswer("dob", `${dob.month}/${dob.day}/${dob.year}`); next(); } }}
-        />}
+        {step.kind === "hero" && <Hero onContinue={next} />}
+
+        {step.kind === "dob" && (
+          <div className="quiz-fade-in space-y-6">
+            <h2 className="text-[22px] font-bold leading-tight text-navy">Enter your date of birth</h2>
+            <p className="text-sm text-muted-foreground">We use this to calculate your Life Path number and personal cycles.</p>
+            <DateOfBirthPicker onChange={setDob} />
+            <button
+              disabled={!dob}
+              onClick={() => { if (dob) { setAnswers((a) => ({ ...a, dob })); trackAnswer("dob", `${dob.month}/${dob.day}/${dob.year}`); next(); } }}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Continue <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {step.kind === "choice" && (
           <ChoiceView key={idx} step={step} value={answers[step.key] as string | undefined} onSelect={(v) => select(step.key, v)} />
@@ -239,11 +253,11 @@ export function Quiz() {
   );
 }
 
-function Hero({ dob, setDob, onContinue }: { dob: DOB | undefined; setDob: (d: DOB | undefined) => void; onContinue: () => void }) {
+function Hero({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="quiz-fade-in flex flex-col">
       <div className="mx-auto mt-2 mb-4 flex items-center gap-2 rounded-full bg-cosmic px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white">
-        <Star className="h-3 w-3 fill-gold text-gold" /> Top numerology quiz · 4.8
+        <Star className="h-3 w-3 fill-gold text-gold" /> 2,300+ people decoded their numbers
       </div>
       <div className="relative mx-auto mb-6 aspect-square w-full max-w-[320px] overflow-hidden rounded-3xl shadow-card">
         <img src={heroImg} alt="Cosmic numerology" className="h-full w-full object-cover" />
@@ -252,25 +266,20 @@ function Hero({ dob, setDob, onContinue }: { dob: DOB | undefined; setDob: (d: D
         Your Life is Not Random.<br />It's a Mathematical Sequence.
       </h1>
       <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
-        Decode the hidden blueprint of your birth date to unlock your financial potential and clear karmic blocks.
+        Your birth date holds a blueprint — patterns shaping your money, relationships, and decisions. Most people never see it.
       </p>
-      <div className="mt-6 space-y-3">
-        <p className="text-center text-xs font-bold uppercase tracking-widest text-violet">Enter your date of birth</p>
-        <DateOfBirthPicker onChange={setDob} />
-      </div>
       <button
-        disabled={!dob}
         onClick={onContinue}
-        className="pulse-soft mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:bg-muted-foreground disabled:opacity-60 disabled:pulse-none"
+        className="pulse-soft mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white transition-all"
       >
-        Decode My Birth Date <Compass className="h-4 w-4" />
+        Decode My Numbers <ArrowRight className="h-4 w-4" />
       </button>
       <div className="mt-4 grid grid-cols-2 gap-2 text-[11px]">
         <div className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 font-medium text-muted-foreground">
           <Sparkles className="h-3 w-3 text-violet" /> 2-min quiz
         </div>
         <div className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 font-medium text-muted-foreground">
-          🎯 94.3% accuracy rated
+          <Star className="h-3 w-3 fill-gold text-gold" /> Rated 4.8 / 5
         </div>
       </div>
       <p className="mt-4 text-center text-[10px] text-muted-foreground">
