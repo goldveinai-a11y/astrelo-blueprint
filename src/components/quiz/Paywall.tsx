@@ -4,7 +4,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/
 import { XRayScroller } from "./widgets/XRayScroller";
 import { DynamicTimeline } from "./widgets/DynamicTimeline";
 import { PricingTiers, type Tier } from "./widgets/PricingTiers";
-import { lifePath, karmicDebt, type DOB } from "@/lib/quiz/numerology";
+import { lifePath, karmicDebt, zodiacSign, type DOB } from "@/lib/quiz/numerology";
 import { useServerFn } from "@tanstack/react-start";
 import { createCheckoutSession } from "@/lib/checkout.functions";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
@@ -169,6 +169,14 @@ export function Paywall({
         <div className="flex items-center gap-1 font-semibold text-navy">
           <Shield className="h-3.5 w-3.5" /> Money-back guarantee
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-violet/20 bg-violet/5 px-5 py-4 text-center space-y-1">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-violet">Your Blueprint is Ready</p>
+        <p className="text-sm font-semibold text-navy">
+          Life Path {lp} · {zodiacSign(dob.month, dob.day)} · {name ? `${name}'s Edition` : "Personal Edition"}
+        </p>
+        <p className="text-[11px] text-muted-foreground">Choose your level of insight:</p>
       </div>
 
       <PricingTiers selected={tier} onSelect={setTier} />
