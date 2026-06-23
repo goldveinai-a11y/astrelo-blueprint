@@ -12,7 +12,7 @@ import { track } from "@/lib/analytics";
 import { lifePath, zodiacSign } from "@/lib/quiz/numerology";
 import type { Answers } from "@/lib/quiz/types";
 import type { DOB } from "@/lib/quiz/numerology";
-import heroImg from "@/assets/quiz/hero-cosmic.jpg";
+import heroImg from "@/assets/quiz/hero-numerology.jpg";
 import ms1 from "@/assets/quiz/milestone-1.jpg";
 import ms2 from "@/assets/quiz/milestone-2.jpg";
 import ms3 from "@/assets/quiz/milestone-3.jpg";
@@ -260,7 +260,7 @@ function Hero({ onContinue }: { onContinue: () => void }) {
         <Star className="h-3 w-3 fill-gold text-gold" /> 2,300+ people decoded their numbers
       </div>
       <div className="relative mx-auto mb-6 aspect-square w-full max-w-[320px] overflow-hidden rounded-3xl shadow-card">
-        <img src={heroImg} alt="Cosmic numerology" className="h-full w-full object-cover" />
+        <img src={heroImg} alt="Golden numerology blueprint" width={1024} height={1024} className="h-full w-full object-cover" />
       </div>
       <h1 className="text-center text-[28px] font-bold leading-tight text-navy">
         Your Life is Not Random.<br />It's a Mathematical Sequence.
