@@ -1,76 +1,31 @@
-# GA4 tracking для нового квиза (numerology.astrelo.net)
+# Замена hero-картинки на премиум-нумерологию
 
-## Что отправляем
+## Проблема
+На первом экране (`src/components/quiz/Quiz.tsx`, компонент `Hero`) сейчас используется `src/assets/quiz/hero-cosmic.jpg` — AI-изображение с чакрами и санскритом. Для платного трафика это выглядит дёшево, эзотерично и не отражает позиционирование «математической последовательности» из заголовка ("Your Life is Not Random. It's a Mathematical Sequence.").
 
-Все события идут только в новый GA4-стрим `G-16CJ7CBJX5` (это единственный `gtag('config', …)` в проекте — со старым квизом Astrelo не пересекаются, у того другой проект и другой Measurement ID). Дополнительно к каждому событию добавляем параметры:
+## Что сделаю
 
-- `send_to: 'G-16CJ7CBJX5'` — жёсткая привязка к нужному стриму, даже если в будущем добавится другой `config`.
-- `quiz_version: 'numerology_v2'` — позволит фильтровать в GA4 / Ads, если когда-нибудь оба квиза окажутся в одном property.
+1. **Сгенерирую новое premium-изображение** через `imagegen` (модель `premium` — лучшее качество для богатой типографики/цифр) с промптом в стиле:
+   - Богатая композиция из светящихся золотых цифр (1–9), сакральных числовых сеток и матриц
+   - Глубокий тёмно-синий/индиго фон (совпадает с `--navy` токеном проекта)
+   - Тонкие золотые лучи и градиенты (perfect match c `--gradient-cosmic` / `--gradient-gold`)
+   - Без санскрита, без чакр, без мандал, без человеческих фигур, без эзотерических символов
+   - Эстетика: премиум финтех × астрология (Vogue × Bloomberg), не «эзотерический Etsy»
+   - Квадрат 1024×1024 (hero рендерится в `aspect-square`)
 
-Цены берём из существующих тиров в `PricingTiers.tsx`: core $19, popular $27, ultimate $33, валюта USD.
+2. **Сохраню** как `src/assets/quiz/hero-numerology.jpg`.
 
-| Событие         | Где срабатывает                                                                          | Параметры                                                                                                                              |
-|-----------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `begin_checkout`| `Paywall.tsx`, момент клика по «Unlock» (до загрузки Stripe)                             | `currency: 'USD'`, `value`, `items: [{ item_id: tier, item_name, price, quantity: 1 }]`                                                |
-| `purchase`      | `report.$token.tsx`, когда `/api/public/get-report` вернул `status: 'ready'` (один раз)  | `transaction_id: token`, `currency: 'USD'`, `value`, `items: [...]`. Дедуп через `sessionStorage['ga_purchase_'+token]`               |
-| `view_result`   | Тот же момент, что `purchase` (кастомное событие — «result page» нового квиза)           | `transaction_id: token`, `tier`, `quiz_version`                                                                                        |
+3. **Обновлю импорт** в `src/components/quiz/Quiz.tsx` (строка 15) — заменю `hero-cosmic.jpg` → `hero-numerology.jpg`, обновлю `alt` на `"Golden numerology blueprint"`.
 
-`purchase` — это и есть основная конверсия для Google Ads (transaction_id = order token, без дублей).
+4. **Удалю** старый `src/assets/quiz/hero-cosmic.jpg`.
+
+## Что НЕ трогаю
+- Текст заголовка, CTA, бейджи, layout Hero
+- Milestone-картинки и report-cover
+- Стили, токены, остальные компоненты квиза
+- Логику, аналитику, paywall
 
 ## Файлы
-
-### Создаём
-
-1. `src/lib/analytics.ts` — клиентский хелпер.
-   ```ts
-   const GA_ID = 'G-16CJ7CBJX5';
-   declare global { interface Window { gtag?: (...a: unknown[]) => void; dataLayer?: unknown[] } }
-   export function track(event: string, params: Record<string, unknown> = {}) {
-     if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
-     window.gtag('event', event, { send_to: GA_ID, quiz_version: 'numerology_v2', ...params });
-   }
-   ```
-
-2. `src/lib/quiz/tiers.ts` — единый источник цен (чтобы `PricingTiers` и аналитика не разъезжались).
-   ```ts
-   import type { Tier } from '@/components/quiz/widgets/PricingTiers';
-   export const TIER_PRICE_USD: Record<Tier, number> = { core: 19, popular: 27, ultimate: 33 };
-   ```
-
-### Правим
-
-3. `src/components/quiz/Paywall.tsx` — в самом начале `startCheckout`, до `setLoading(true)`:
-   ```ts
-   const value = TIER_PRICE_USD[tier];
-   track('begin_checkout', {
-     currency: 'USD', value,
-     items: [{ item_id: tier, item_name: `Numerology Blueprint — ${tier}`, price: value, quantity: 1 }],
-   });
-   ```
-
-4. `src/routes/report.$token.tsx` — внутри блока, где `data.status === 'ready'`, через `useEffect` с зависимостью `[data?.status, token]`:
-   ```ts
-   const key = `ga_purchase_${token}`;
-   if (sessionStorage.getItem(key)) return;
-   const value = TIER_PRICE_USD[data.tier];
-   track('purchase', {
-     transaction_id: token, currency: 'USD', value,
-     items: [{ item_id: data.tier, item_name: `Numerology Blueprint — ${data.tier}`, price: value, quantity: 1 }],
-   });
-   track('view_result', { transaction_id: token, tier: data.tier });
-   sessionStorage.setItem(key, '1');
-   ```
-
-   (Оборачиваем рендер `ReportView` в маленький компонент-обёртку, чтобы корректно повесить `useEffect`, не нарушая правила хуков.)
-
-### Не трогаем
-
-`__root.tsx` (там уже корректный gtag-снипет), `stripe-webhook.ts`, `get-report.ts`, `checkout.functions.ts`, `ReportView.tsx`, схему `orders`.
-
-## Что сделать в GA4 / Google Ads после деплоя
-
-1. GA4 → Admin → Events → пометить `purchase` как **Key event** (раньше Conversion).
-2. Google Ads → Tools → Conversions → New → Import from GA4 → выбрать `purchase` (и при желании `view_result` как secondary).
-3. Связать GA4 property со Google Ads-аккаунтом (Admin → Product links → Google Ads links), если ещё не связано.
-
-После этого `purchase` будет атрибутироваться к кампаниям Google Ads с реальным `value` и `transaction_id`, а данные старого квиза Astrelo не попадут в этот property — у него отдельный stream.
+- create: `src/assets/quiz/hero-numerology.jpg`
+- edit: `src/components/quiz/Quiz.tsx` (1 строка импорта + alt)
+- delete: `src/assets/quiz/hero-cosmic.jpg`
