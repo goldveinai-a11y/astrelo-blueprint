@@ -65,24 +65,27 @@ export function Paywall({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startCheckout = async () => {
+  const startCheckout = async (tierOverride?: Tier) => {
+    const activeTier = tierOverride ?? tier;
     if (!email) {
       toast.error("Email is missing — please go back and enter your email.");
       return;
     }
-    const value = TIER_PRICE_USD[tier];
+    if (loading) return;
+    const value = TIER_PRICE_USD[activeTier];
     track("begin_checkout", {
       currency: "USD",
       value,
       items: [
-        { item_id: tier, item_name: `Numerology Blueprint — ${tier}`, price: value, quantity: 1 },
+        { item_id: activeTier, item_name: `Numerology Blueprint — ${activeTier}`, price: value, quantity: 1 },
       ],
     });
+    track("checkout_opened", { tier: activeTier, value });
     setLoading(true);
     try {
       const res = await create({
         data: {
-          tier,
+          tier: activeTier,
           email,
           fullName: name,
           dob: { day: dob.day, month: dob.month, year: dob.year },
@@ -179,7 +182,13 @@ export function Paywall({
         <p className="text-[11px] text-muted-foreground">Choose your level of insight:</p>
       </div>
 
-      <PricingTiers selected={tier} onSelect={setTier} />
+      <PricingTiers
+        selected={tier}
+        onSelect={(t) => {
+          setTier(t);
+          setTimeout(() => startCheckout(t), 350);
+        }}
+      />
 
       {tier !== "core" && (
         <div className="space-y-1.5">
@@ -202,6 +211,46 @@ export function Paywall({
           </p>
         </div>
       )}
+
+      <div className="rounded-2xl border-2 border-violet/20 bg-violet/5 px-5 py-5 space-y-2">
+        <p className="text-lg font-bold text-navy leading-snug">Your Blueprint is ready, {name}</p>
+        <p className="text-xs text-muted-foreground">10 chapters built from your exact numbers</p>
+      </div>
+
+      <div className="space-y-3">
+        {[
+          { emoji: "🔮", text: `Understand the patterns shaping your finances and relationships by ${new Date(Date.now()+30*86400000).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}` },
+          { emoji: "📅", text: "See your exact energetic windows — dates when decisions land twice as hard" },
+          { emoji: "🔓", text: "Identify the karmic blocks running quietly in the background — and when they break" },
+          { emoji: "💛", text: "Yours forever — one payment, no renewal, no subscription" },
+        ].map((item) => (
+          <div key={item.emoji} className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3">
+            <span className="text-xl shrink-0">{item.emoji}</span>
+            <p className="text-sm leading-snug text-foreground">{item.text}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-3">
+        <p className="text-base font-bold text-navy">What's included?</p>
+        {[
+          { emoji: "📖", title: "10-Chapter Numerology Report", desc: "Life Path, Expression, Soul Urge, Personality — your complete number system, decoded from your exact date of birth." },
+          { emoji: "🔮", title: "Karmic Architecture Analysis", desc: "What's actually blocking your financial and personal patterns — and the exact cycle they're tied to." },
+          { emoji: "📅", title: "90-Day Energetic Windows", desc: "Specific dates when your effort moves twice as far — for wealth, decisions, and love." },
+          { emoji: "❤️", title: "Love Compatibility Map", desc: "Your harmony, growth, and tension numbers — and how they play out in your relationships.", tag: "Popular & Ultimate" },
+        ].map((item) => (
+          <div key={item.title} className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-4">
+            <span className="text-2xl shrink-0">{item.emoji}</span>
+            <div>
+              <p className="text-sm font-bold text-navy">
+                {item.title}
+                {item.tag && <span className="ml-2 text-[10px] font-bold text-violet">{item.tag}</span>}
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
 
       <div className="space-y-1.5 text-center text-[11px] text-muted-foreground">
         <p className="flex items-center justify-center gap-1.5 font-semibold text-navy">
