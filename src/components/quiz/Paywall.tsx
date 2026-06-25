@@ -84,6 +84,9 @@ export function Paywall({
         { item_id: tierRef.current, item_name: `Numerology Blueprint — ${tierRef.current}`, price: value, quantity: 1 },
       ],
     });
+    if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+      (window as any).fbq("track", "InitiateCheckout", { value, currency: "USD" });
+    }
     setLoading(true);
     try {
       const res = await create({

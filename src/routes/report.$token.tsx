@@ -160,6 +160,9 @@ function ReadyReport({
         { item_id: tier, item_name: `Numerology Blueprint — ${tier}`, price: value, quantity: 1 },
       ],
     });
+    if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+      (window as any).fbq("track", "Purchase", { value, currency: "USD" });
+    }
     track("view_report", { transaction_id: token, tier });
     window.sessionStorage.setItem(key, "1");
   }, [token, tier]);
