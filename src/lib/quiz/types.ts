@@ -24,4 +24,7 @@ export type Answers = {
   karma?: string;
   name?: string;
   email?: string;
+  partnerName?: string;
 };
+
+// partnerName added via quiz step
