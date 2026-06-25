@@ -12,7 +12,7 @@ import { track } from "@/lib/analytics";
 import { lifePath, zodiacSign } from "@/lib/quiz/numerology";
 import type { Answers } from "@/lib/quiz/types";
 import type { DOB } from "@/lib/quiz/numerology";
-import heroImg from "@/assets/quiz/hero-numerology.jpg";
+import heroImg from "@/assets/quiz/hero-numerology.jpg.asset.json";
 import ms1 from "@/assets/quiz/milestone-1.jpg";
 import ms2 from "@/assets/quiz/milestone-2.jpg";
 import ms3 from "@/assets/quiz/milestone-3.jpg";
