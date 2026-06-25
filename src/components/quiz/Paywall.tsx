@@ -58,7 +58,6 @@ export function Paywall({
     tierRef.current = t;
     setTier(t);
   };
-  const [partnerNameInput, setPartnerNameInput] = useState("");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [loading, setLoading] = useState(false);
@@ -93,7 +92,7 @@ export function Paywall({
           email,
           fullName: name,
           dob: { day: dob.day, month: dob.month, year: dob.year },
-          partnerName: partnerNameInput.trim() || partnerName || null,
+          partnerName: partnerName || null,
         },
       });
       if (!res.clientSecret) throw new Error("No client secret");
@@ -194,26 +193,10 @@ export function Paywall({
         }}
       />
 
-      {tier !== "core" && (
-        <div className="space-y-1.5">
-          <label
-            htmlFor="partnerName"
-            className="block px-1 text-xs font-bold uppercase tracking-widest text-violet"
-          >
-            💞 Partner's name (for Love Compatibility)
-          </label>
-          <input
-            id="partnerName"
-            type="text"
-            value={partnerNameInput}
-            onChange={(e) => setPartnerNameInput(e.target.value)}
-            placeholder="e.g. Alex"
-            className="h-12 w-full rounded-2xl border-2 border-border bg-card px-4 text-sm font-medium outline-none transition-colors focus:border-violet"
-          />
-          <p className="px-1 text-[10px] text-muted-foreground">
-            Optional — leave blank for a general Love Compatibility reading.
-          </p>
-        </div>
+      {partnerName && tier !== "core" && (
+        <p className="text-center text-xs text-violet font-medium">
+          💞 Love Compatibility personalised for: <strong>{partnerName}</strong>
+        </p>
       )}
 
       <div className="rounded-2xl border-2 border-violet/20 bg-violet/5 px-5 py-5 space-y-2">
