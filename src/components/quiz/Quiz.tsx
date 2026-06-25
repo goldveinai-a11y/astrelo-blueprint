@@ -344,7 +344,7 @@ function Hero({ onContinue }: { onContinue: () => void }) {
         <Star className="h-3 w-3 fill-gold text-gold" /> 2,300+ people decoded their numbers
       </div>
       <div className="relative mx-auto mb-6 aspect-square w-full max-w-[320px] overflow-hidden rounded-3xl shadow-card">
-        <img src={heroImg} alt="Discover what your numbers mean" className="h-full w-full object-cover" />
+        <img src={heroImg.url} alt="Discover what your numbers mean" className="h-full w-full object-cover" />
       </div>
       <h1 className="text-center text-[26px] font-bold leading-tight text-navy">
         What Does Your Birth Date Actually Say About You?
