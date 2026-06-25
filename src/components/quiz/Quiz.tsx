@@ -12,7 +12,7 @@ import { track } from "@/lib/analytics";
 import { lifePath, zodiacSign } from "@/lib/quiz/numerology";
 import type { Answers } from "@/lib/quiz/types";
 import type { DOB } from "@/lib/quiz/numerology";
-import heroImg from "@/assets/quiz/hero-numerology.jpg.asset.json";
+import heroImg from "@/assets/quiz/hero-numerology.jpg";
 import ms1 from "@/assets/quiz/milestone-1.jpg";
 import ms2 from "@/assets/quiz/milestone-2.jpg";
 import ms3 from "@/assets/quiz/milestone-3.jpg";
@@ -24,6 +24,7 @@ type Step =
   | { kind: "hero" }
   | { kind: "dob" }
   | { kind: "numerology_insight" }
+  | { kind: "partnerName" }
   | ChoiceStep
   | SliderStep
   | { kind: "did_you_know"; variant: 1 | 2 }
@@ -42,6 +43,7 @@ const STEPS: Step[] = [
   { kind: "numerology_insight" },
   { kind: "choice", key: "gender", question: "Select your biological or energetic alignment:", options: ["Female", "Male", "Non-binary"] },
   { kind: "choice", key: "relationship", question: "What is your current relationship status?", options: ["Single", "In a relationship", "Married", "It's complicated"] },
+  { kind: "partnerName" },
   { kind: "choice", key: "focus", question: "What is your primary focus for the next 6 months?", options: [
     "Breaking through financial stagnation & finding my wealthy niche",
     "Attracting a deeply aligned partner or healing current relationships",
@@ -117,10 +119,18 @@ export function Quiz() {
   const [dob, setDob] = useState<DOB | undefined>();
   const [nameInput, setNameInput] = useState("");
   const [emailInput, setEmailInput] = useState("");
+  const [partnerNameInput, setPartnerNameInput] = useState("");
   const [teaserParagraph, setTeaserParagraph] = useState<string | null>(null);
 
   const step = STEPS[idx];
-  const next = () => setIdx((i) => Math.min(STEPS.length - 1, i + 1));
+  const next = () => setIdx((i) => {
+    const nextIdx = Math.min(STEPS.length - 1, i + 1);
+    const nextStep = STEPS[nextIdx];
+    if (nextStep?.kind === "partnerName" && answers.relationship === "Single") {
+      return Math.min(STEPS.length - 1, nextIdx + 1);
+    }
+    return nextIdx;
+  });
   const back = () => setIdx((i) => Math.max(0, i - 1));
 
   useEffect(() => {
@@ -262,6 +272,33 @@ export function Quiz() {
           />
         )}
 
+        {step.kind === "partnerName" && (
+          <div className="quiz-fade-in space-y-5">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-violet mb-2">Optional</p>
+              <h2 className="text-[22px] font-bold leading-tight text-navy">What is your partner's name?</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Used to personalise your Love Compatibility chapter.</p>
+            </div>
+            <input
+              type="text"
+              value={partnerNameInput}
+              onChange={(e) => setPartnerNameInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { setAnswers((a) => ({ ...a, partnerName: partnerNameInput.trim() || undefined })); next(); } }}
+              placeholder="e.g. Alex"
+              className="h-14 w-full rounded-2xl border-2 border-border bg-card px-5 text-base font-medium outline-none transition-colors focus:border-violet"
+            />
+            <button
+              onClick={() => { setAnswers((a) => ({ ...a, partnerName: partnerNameInput.trim() || undefined })); next(); }}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white"
+            >
+              Continue <ArrowRight className="h-4 w-4" />
+            </button>
+            <button onClick={next} className="w-full text-center text-sm text-muted-foreground underline">
+              Skip — generate without partner name
+            </button>
+          </div>
+        )}
+
         {step.kind === "loader" && answers.dob && (
           <AILoader
             name={answers.name || "you"}
@@ -291,7 +328,7 @@ export function Quiz() {
         )}
 
         {step.kind === "paywall" && answers.dob && (
-          <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} />
+          <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} partnerName={answers.partnerName as string | undefined} />
         )}
 
       </main>
@@ -307,7 +344,7 @@ function Hero({ onContinue }: { onContinue: () => void }) {
         <Star className="h-3 w-3 fill-gold text-gold" /> 2,300+ people decoded their numbers
       </div>
       <div className="relative mx-auto mb-6 aspect-square w-full max-w-[320px] overflow-hidden rounded-3xl shadow-card">
-        <img src={heroImg.url} alt="Discover what your numbers mean" className="h-full w-full object-cover" />
+        <img src={heroImg} alt="Discover what your numbers mean" className="h-full w-full object-cover" />
       </div>
       <h1 className="text-center text-[26px] font-bold leading-tight text-navy">
         What Does Your Birth Date Actually Say About You?
