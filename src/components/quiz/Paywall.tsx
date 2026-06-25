@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Lock, Shield, Star, X } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { XRayScroller } from "./widgets/XRayScroller";
@@ -52,6 +52,12 @@ export function Paywall({
   const lp = lifePath(dob);
   const kd = karmicDebt(dob);
   const [tier, setTier] = useState<Tier>("popular");
+  const tierRef = useRef<Tier>("popular");
+
+  const setTierAndRef = (t: Tier) => {
+    tierRef.current = t;
+    setTier(t);
+  };
   const [partnerNameInput, setPartnerNameInput] = useState("");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
@@ -65,27 +71,25 @@ export function Paywall({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startCheckout = async (tierOverride?: Tier) => {
-    const activeTier = tierOverride ?? tier;
+  const startCheckout = async () => {
     if (!email) {
       toast.error("Email is missing — please go back and enter your email.");
       return;
     }
     if (loading) return;
-    const value = TIER_PRICE_USD[activeTier];
+    const value = TIER_PRICE_USD[tierRef.current];
     track("begin_checkout", {
       currency: "USD",
       value,
       items: [
-        { item_id: activeTier, item_name: `Numerology Blueprint — ${activeTier}`, price: value, quantity: 1 },
+        { item_id: tierRef.current, item_name: `Numerology Blueprint — ${tierRef.current}`, price: value, quantity: 1 },
       ],
     });
-    track("checkout_opened", { tier: activeTier, value });
     setLoading(true);
     try {
       const res = await create({
         data: {
-          tier: activeTier,
+          tier: tierRef.current,
           email,
           fullName: name,
           dob: { day: dob.day, month: dob.month, year: dob.year },
@@ -185,8 +189,8 @@ export function Paywall({
       <PricingTiers
         selected={tier}
         onSelect={(t) => {
-          setTier(t);
-          setTimeout(() => startCheckout(t), 350);
+          setTierAndRef(t);
+          setTimeout(startCheckout, 350);
         }}
       />
 
