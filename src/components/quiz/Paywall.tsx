@@ -48,12 +48,6 @@ export function Paywall({
   const tierRef = useRef<Tier>("popular");
   const checkoutRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (clientSecret && checkoutRef.current) {
-      setTimeout(() => checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-    }
-  }, [clientSecret]);
-
   const setTierAndRef = (t: Tier) => {
     tierRef.current = t;
     setTier(t);
@@ -62,6 +56,12 @@ export function Paywall({
   const [checkoutData, setCheckoutData] = useState<{ publishableKey: string; token: string; amount: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const create = useServerFn(createPaymentIntent);
+
+  useEffect(() => {
+    if (clientSecret && checkoutRef.current) {
+      setTimeout(() => checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
+  }, [clientSecret]);
 
   useEffect(() => {
     track("view_result", { life_path: lp });

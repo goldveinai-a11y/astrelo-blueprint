@@ -215,7 +215,7 @@ export function CustomCheckout(props: CheckoutProps) {
       options={{
         clientSecret: props.clientSecret,
         appearance: {
-          theme: "none",
+          theme: "stripe",
           variables: { colorPrimary: "#7C3AED", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" },
         },
       }}
