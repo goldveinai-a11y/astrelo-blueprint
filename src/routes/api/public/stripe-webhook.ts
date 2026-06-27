@@ -30,48 +30,75 @@ export const Route = createFileRoute('/api/public/stripe-webhook')({
           return new Response('Invalid signature', { status: 400 })
         }
 
-        if (event.type !== 'checkout.session.completed') {
-          return new Response('ok', { status: 200 })
-        }
+        if (event.type === 'checkout.session.completed') {
+          const session = event.data.object as Stripe.Checkout.Session
+          const token = session.metadata?.token
+          const sessionId = session.id
 
-        const session = event.data.object as Stripe.Checkout.Session
-        const token = session.metadata?.token
-        const sessionId = session.id
-
-        if (!token) {
-          console.error('[stripe-webhook] checkout.session.completed missing metadata.token', sessionId)
-          return new Response('ok', { status: 200 })
-        }
-
-        const { supabaseAdmin } = await import('@/integrations/supabase/client.server')
-        const { data, error } = await supabaseAdmin
-          .from('orders')
-          .update({ status: 'paid', stripe_session_id: sessionId })
-          .eq('token', token)
-          .select('id')
-
-        if (error) {
-          console.error('[stripe-webhook] DB update error:', error.message)
-          return new Response('DB error', { status: 500 })
-        }
-        if (!data || data.length === 0) {
-          console.error('[stripe-webhook] No order found for token:', token)
-          return new Response('ok', { status: 200 })
-        }
-
-        try {
-          const generated = await generateNarrativeForOrder(token)
-          if (generated) {
-            try {
-              await sendReportEmail(token)
-            } catch (e) {
-              console.error('[stripe-webhook] Email send failed:', (e as Error).message)
-              // Don't fail the webhook for this — order is paid, narrative is saved either way
-            }
+          if (!token) {
+            console.error('[stripe-webhook] checkout.session.completed missing metadata.token', sessionId)
+            return new Response('ok', { status: 200 })
           }
-        } catch (e) {
-          console.error('[stripe-webhook] Narrative generation failed:', (e as Error).message)
-          // Don't fail the webhook for this — order is paid either way, report route can retry generation later
+
+          const { supabaseAdmin } = await import('@/integrations/supabase/client.server')
+          const { data, error } = await supabaseAdmin
+            .from('orders')
+            .update({ status: 'paid', stripe_session_id: sessionId })
+            .eq('token', token)
+            .select('id')
+
+          if (error) {
+            console.error('[stripe-webhook] DB update error:', error.message)
+            return new Response('DB error', { status: 500 })
+          }
+
+          try {
+            const generated = await generateNarrativeForOrder(token)
+            if (generated) {
+              try { await sendReportEmail(token) } catch (e) {
+                console.error('[stripe-webhook] Email send failed:', (e as Error).message)
+              }
+            }
+          } catch (e) {
+            console.error('[stripe-webhook] Narrative generation failed:', (e as Error).message)
+          }
+
+          return new Response('ok', { status: 200 })
+        }
+
+        if (event.type === 'payment_intent.succeeded') {
+          const pi = event.data.object as Stripe.PaymentIntent
+          const token = pi.metadata?.token
+
+          if (!token) {
+            console.error('[stripe-webhook] payment_intent.succeeded missing metadata.token', pi.id)
+            return new Response('ok', { status: 200 })
+          }
+
+          const { supabaseAdmin } = await import('@/integrations/supabase/client.server')
+          const { data, error } = await supabaseAdmin
+            .from('orders')
+            .update({ status: 'paid', stripe_session_id: pi.id })
+            .eq('token', token)
+            .select('id')
+
+          if (error) {
+            console.error('[stripe-webhook] payment_intent DB error:', error.message)
+            return new Response('DB error', { status: 500 })
+          }
+
+          try {
+            const generated = await generateNarrativeForOrder(token)
+            if (generated) {
+              try { await sendReportEmail(token) } catch (e) {
+                console.error('[stripe-webhook] Email send failed:', (e as Error).message)
+              }
+            }
+          } catch (e) {
+            console.error('[stripe-webhook] Narrative generation failed:', (e as Error).message)
+          }
+
+          return new Response('ok', { status: 200 })
         }
 
         return new Response('ok', { status: 200 })
