@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Lock, Shield, Star, X } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { XRayScroller } from "./widgets/XRayScroller";
@@ -7,7 +7,6 @@ import { PricingTiers, type Tier } from "./widgets/PricingTiers";
 import { lifePath, karmicDebt, zodiacSign, type DOB } from "@/lib/quiz/numerology";
 import { useServerFn } from "@tanstack/react-start";
 import { createPaymentIntent } from "@/lib/checkout.functions";
-import { CustomCheckout } from "./CustomCheckout";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 import { TIER_PRICE_USD } from "@/lib/quiz/tiers";
@@ -30,6 +29,20 @@ const FAQ_ITEMS = [
     a: "Yes. Your birth details and report are private and never sold or shared.",
   },
 ];
+
+const CustomCheckout = lazy(() =>
+  import("./CustomCheckout").then((module) => ({ default: module.CustomCheckout })),
+);
+
+function CheckoutLoading() {
+  return (
+    <div className="quiz-fade-in flex min-h-[420px] flex-col items-center justify-center gap-3 px-5 text-center">
+      <div className="h-9 w-9 animate-spin rounded-full border-2 border-violet border-t-transparent" />
+      <p className="text-sm font-semibold text-navy">Loading secure checkout…</p>
+      <p className="text-xs text-muted-foreground">Please keep this page open.</p>
+    </div>
+  );
+}
 
 export function Paywall({
   name,
@@ -110,15 +123,17 @@ export function Paywall({
 
   if (clientSecret && checkoutData) {
     return (
-      <CustomCheckout
-        clientSecret={clientSecret}
-        publishableKey={checkoutData.publishableKey}
-        token={checkoutData.token}
-        amount={checkoutData.amount}
-        name={name}
-        tier={tierRef.current}
-        onBack={() => { setClientSecret(null); setCheckoutData(null); }}
-      />
+      <Suspense fallback={<CheckoutLoading />}>
+        <CustomCheckout
+          clientSecret={clientSecret}
+          publishableKey={checkoutData.publishableKey}
+          token={checkoutData.token}
+          amount={checkoutData.amount}
+          name={name}
+          tier={tierRef.current}
+          onBack={() => { setClientSecret(null); setCheckoutData(null); }}
+        />
+      </Suspense>
     );
   }
 
@@ -273,15 +288,17 @@ export function Paywall({
 
       {clientSecret && checkoutData && (
         <div ref={checkoutRef} className="pt-2">
-          <CustomCheckout
-            clientSecret={clientSecret}
-            publishableKey={checkoutData.publishableKey}
-            token={checkoutData.token}
-            amount={checkoutData.amount}
-            name={name}
-            tier={tierRef.current}
-            onBack={() => { setClientSecret(null); setCheckoutData(null); }}
-          />
+          <Suspense fallback={<CheckoutLoading />}>
+            <CustomCheckout
+              clientSecret={clientSecret}
+              publishableKey={checkoutData.publishableKey}
+              token={checkoutData.token}
+              amount={checkoutData.amount}
+              name={name}
+              tier={tierRef.current}
+              onBack={() => { setClientSecret(null); setCheckoutData(null); }}
+            />
+          </Suspense>
         </div>
       )}
     </div>
