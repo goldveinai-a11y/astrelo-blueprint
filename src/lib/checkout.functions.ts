@@ -61,3 +61,51 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       publishableKey,
     };
   });
+
+const TIER_AMOUNTS = {
+  core: 1900,
+  popular: 2700,
+  ultimate: 3300,
+} as const;
+
+export const createPaymentIntent = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => InputSchema.parse(input))
+  .handler(async ({ data }) => {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
+    if (!stripeKey || !publishableKey) throw new Error("Stripe keys missing");
+
+    const { default: Stripe } = await import("stripe");
+    const { randomBytes } = await import("crypto");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const token = randomBytes(32).toString("hex");
+
+    const { error: insertErr } = await supabaseAdmin.from("orders").insert({
+      token,
+      email: data.email,
+      full_name: data.fullName,
+      dob_day: data.dob.day,
+      dob_month: data.dob.month,
+      dob_year: data.dob.year,
+      tier: data.tier,
+      partner_name: data.partnerName ?? null,
+      status: "pending",
+    });
+    if (insertErr) throw new Error(`DB error: ${insertErr.message}`);
+
+    const stripe = new Stripe(stripeKey);
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: TIER_AMOUNTS[data.tier],
+      currency: "usd",
+      receipt_email: data.email,
+      metadata: { token, tier: data.tier },
+    });
+
+    return {
+      clientSecret: paymentIntent.client_secret,
+      publishableKey,
+      token,
+      amount: TIER_AMOUNTS[data.tier],
+    };
+  });
