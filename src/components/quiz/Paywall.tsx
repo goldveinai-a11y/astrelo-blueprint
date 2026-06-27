@@ -6,9 +6,8 @@ import { DynamicTimeline } from "./widgets/DynamicTimeline";
 import { PricingTiers, type Tier } from "./widgets/PricingTiers";
 import { lifePath, karmicDebt, zodiacSign, type DOB } from "@/lib/quiz/numerology";
 import { useServerFn } from "@tanstack/react-start";
-import { createCheckoutSession } from "@/lib/checkout.functions";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
+import { createPaymentIntent } from "@/lib/checkout.functions";
+import { CustomCheckout } from "./CustomCheckout";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 import { TIER_PRICE_USD } from "@/lib/quiz/tiers";
@@ -32,12 +31,6 @@ const FAQ_ITEMS = [
   },
 ];
 
-let stripePromiseCache: Promise<Stripe | null> | null = null;
-const getStripe = (pk: string) => {
-  if (!stripePromiseCache) stripePromiseCache = loadStripe(pk);
-  return stripePromiseCache;
-};
-
 export function Paywall({
   name,
   dob,
@@ -53,15 +46,22 @@ export function Paywall({
   const kd = karmicDebt(dob);
   const [tier, setTier] = useState<Tier>("popular");
   const tierRef = useRef<Tier>("popular");
+  const checkoutRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (clientSecret && checkoutRef.current) {
+      setTimeout(() => checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
+  }, [clientSecret]);
 
   const setTierAndRef = (t: Tier) => {
     tierRef.current = t;
     setTier(t);
   };
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
+  const [checkoutData, setCheckoutData] = useState<{ publishableKey: string; token: string; amount: number } | null>(null);
   const [loading, setLoading] = useState(false);
-  const create = useServerFn(createCheckoutSession);
+  const create = useServerFn(createPaymentIntent);
 
   useEffect(() => {
     track("view_result", { life_path: lp });
@@ -84,9 +84,6 @@ export function Paywall({
         { item_id: tierRef.current, item_name: `Numerology Blueprint — ${tierRef.current}`, price: value, quantity: 1 },
       ],
     });
-    if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
-      (window as any).fbq("track", "InitiateCheckout", { value, currency: "USD" });
-    }
     setLoading(true);
     try {
       const res = await create({
@@ -99,8 +96,8 @@ export function Paywall({
         },
       });
       if (!res.clientSecret) throw new Error("No client secret");
-      setStripePromise(getStripe(res.publishableKey));
       setClientSecret(res.clientSecret);
+      setCheckoutData({ publishableKey: res.publishableKey, token: res.token, amount: res.amount });
     } catch (e) {
       console.error(e);
       toast.error("Could not start checkout", {
@@ -111,29 +108,17 @@ export function Paywall({
     }
   };
 
-  if (clientSecret && stripePromise) {
+  if (clientSecret && checkoutData) {
     return (
-      <div className="quiz-fade-in space-y-4">
-        <div className="text-center">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-violet">Secure Checkout</p>
-          <h2 className="mt-2 text-2xl font-bold text-navy">Finalize your blueprint, {name}</h2>
-          <p className="mt-1 text-xs text-muted-foreground">Encrypted payment via Stripe · Apple Pay · Google Pay · Card</p>
-        </div>
-        <div className="overflow-hidden rounded-2xl border border-border bg-card p-2 shadow-card">
-          <EmbeddedCheckoutProvider
-            stripe={stripePromise}
-            options={{ clientSecret }}
-          >
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
-        </div>
-        <button
-          onClick={() => setClientSecret(null)}
-          className="w-full rounded-xl py-2 text-xs font-semibold text-muted-foreground hover:text-navy"
-        >
-          ← Choose a different tier
-        </button>
-      </div>
+      <CustomCheckout
+        clientSecret={clientSecret}
+        publishableKey={checkoutData.publishableKey}
+        token={checkoutData.token}
+        amount={checkoutData.amount}
+        name={name}
+        tier={tierRef.current}
+        onBack={() => { setClientSecret(null); setCheckoutData(null); }}
+      />
     );
   }
 
@@ -285,6 +270,20 @@ export function Paywall({
       <p className="pb-6 text-center text-[9px] text-muted-foreground/70">
         For insight and entertainment purposes only — not professional, financial, or medical advice. Results vary by individual.
       </p>
+
+      {clientSecret && checkoutData && (
+        <div ref={checkoutRef} className="pt-2">
+          <CustomCheckout
+            clientSecret={clientSecret}
+            publishableKey={checkoutData.publishableKey}
+            token={checkoutData.token}
+            amount={checkoutData.amount}
+            name={name}
+            tier={tierRef.current}
+            onBack={() => { setClientSecret(null); setCheckoutData(null); }}
+          />
+        </div>
+      )}
     </div>
   );
 }
