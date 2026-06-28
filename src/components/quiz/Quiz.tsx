@@ -12,7 +12,7 @@ import { track } from "@/lib/analytics";
 import { lifePath, zodiacSign } from "@/lib/quiz/numerology";
 import type { Answers } from "@/lib/quiz/types";
 import type { DOB } from "@/lib/quiz/numerology";
-const heroImg = "/__l5e/assets-v1/b9ca7567-ff74-404f-a5df-cad36574b60e/hero-numerology.jpg";
+import heroImg from "@/assets/quiz/hero-numerology.jpg";
 import ms1 from "@/assets/quiz/milestone-1.jpg";
 import ms2 from "@/assets/quiz/milestone-2.jpg";
 import ms3 from "@/assets/quiz/milestone-3.jpg";
@@ -127,11 +127,24 @@ export function Quiz() {
     const nextIdx = Math.min(STEPS.length - 1, i + 1);
     const nextStep = STEPS[nextIdx];
     if (nextStep?.kind === "partnerName" && answers.relationship === "Single") {
-      return Math.min(STEPS.length - 1, nextIdx + 1);
+      const skip = Math.min(STEPS.length - 1, nextIdx + 1);
+      history.pushState({ quizStep: skip }, "");
+      return skip;
     }
+    history.pushState({ quizStep: nextIdx }, "");
     return nextIdx;
   });
   const back = () => setIdx((i) => Math.max(0, i - 1));
+
+  useEffect(() => {
+    history.replaceState({ quizStep: 0 }, "");
+    const onPop = (e: PopStateEvent) => {
+      const step = e.state?.quizStep;
+      if (typeof step === "number") setIdx(step);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
 
   useEffect(() => {
     if (step.kind === "hero") track("quiz_started", {});
