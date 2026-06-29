@@ -68,9 +68,16 @@ function CheckoutForm({ clientSecret, token, amount, name, tier, onBack }: Check
       if (error) {
         complete("fail");
         toast.error(error.message);
-      } else {
+      } else if (paymentIntent?.status === "succeeded") {
         complete("success");
-        if (paymentIntent?.status === "succeeded") {
+        track("purchase", { transaction_id: token, value: amount / 100, currency: "USD", tier });
+        window.location.href = `/report/${token}`;
+      } else if (paymentIntent?.status === "requires_action") {
+        complete("success");
+        const { error: actionError, paymentIntent: pi3ds } = await stripe.handleNextAction({ clientSecret });
+        if (actionError) {
+          toast.error(actionError.message ?? "Authentication failed. Please try again.");
+        } else if (pi3ds?.status === "succeeded") {
           track("purchase", { transaction_id: token, value: amount / 100, currency: "USD", tier });
           window.location.href = `/report/${token}`;
         }
@@ -96,6 +103,14 @@ function CheckoutForm({ clientSecret, token, amount, name, tier, onBack }: Check
       } else if (paymentIntent?.status === "succeeded") {
         track("purchase", { transaction_id: token, value: amount / 100, currency: "USD", tier });
         window.location.href = `/report/${token}`;
+      } else if (paymentIntent?.status === "requires_action") {
+        const { error: actionError, paymentIntent: pi3ds } = await stripe.handleNextAction({ clientSecret });
+        if (actionError) {
+          toast.error(actionError.message ?? "Authentication failed. Please try again.");
+        } else if (pi3ds?.status === "succeeded") {
+          track("purchase", { transaction_id: token, value: amount / 100, currency: "USD", tier });
+          window.location.href = `/report/${token}`;
+        }
       }
     } catch (e) {
       toast.error("Something went wrong. Please try again.");
