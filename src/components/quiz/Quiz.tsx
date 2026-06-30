@@ -124,6 +124,10 @@ export function Quiz() {
   const [emailInput, setEmailInput] = useState("");
   const [partnerNameInput, setPartnerNameInput] = useState("");
   const [teaserParagraph, setTeaserParagraph] = useState<string | null>(null);
+  const [quizToken, setQuizToken] = useState<string | null>(null);
+  const tokenRequested = useRef(false);
+  const genToken = useServerFn(generateQuizToken);
+
 
   const step = STEPS[idx];
   const next = () => setIdx((i) => {
