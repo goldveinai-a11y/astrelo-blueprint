@@ -155,8 +155,18 @@ export function Quiz() {
 
   useEffect(() => {
     if (step.kind === "hero") track("quiz_started", {});
-    if (step.kind === "loader") track("quiz_completed", {});
+    if (step.kind === "loader") {
+      track("quiz_completed", {});
+      if (!tokenRequested.current) {
+        tokenRequested.current = true;
+        genToken().then((r) => setQuizToken(r.quizToken)).catch((e) => {
+          console.error("quiz token error", e);
+          tokenRequested.current = false;
+        });
+      }
+    }
   }, [idx]);
+
 
   const trackAnswer = (questionId: string, value: string | number) => {
     const pct = Math.round((idx / STEPS.length) * 100);
