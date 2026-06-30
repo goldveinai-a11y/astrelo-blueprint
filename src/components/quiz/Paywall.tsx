@@ -49,11 +49,13 @@ export function Paywall({
   dob,
   email,
   partnerName,
+  quizToken,
 }: {
   name: string;
   dob: DOB;
   email: string;
   partnerName?: string;
+  quizToken: string | null;
 }) {
   const lp = lifePath(dob);
   const kd = karmicDebt(dob);
