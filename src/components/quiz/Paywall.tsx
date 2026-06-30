@@ -49,11 +49,13 @@ export function Paywall({
   dob,
   email,
   partnerName,
+  quizToken,
 }: {
   name: string;
   dob: DOB;
   email: string;
   partnerName?: string;
+  quizToken: string | null;
 }) {
   const lp = lifePath(dob);
   const kd = karmicDebt(dob);
@@ -88,6 +90,10 @@ export function Paywall({
       toast.error("Email is missing — please go back and enter your email.");
       return;
     }
+    if (!quizToken) {
+      toast.error("Session not ready — please wait a moment and try again.");
+      return;
+    }
     if (loading) return;
     const value = TIER_PRICE_USD[tierRef.current];
     track("begin_checkout", {
@@ -106,6 +112,8 @@ export function Paywall({
           fullName: name,
           dob: { day: dob.day, month: dob.month, year: dob.year },
           partnerName: partnerName || null,
+          quizToken,
+
         },
       });
       if (!res.clientSecret) throw new Error("No client secret");

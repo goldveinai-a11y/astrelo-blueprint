@@ -62,6 +62,24 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_tokens: {
+        Row: {
+          created_at: string
+          token: string
+          used: boolean
+        }
+        Insert: {
+          created_at?: string
+          token: string
+          used?: boolean
+        }
+        Update: {
+          created_at?: string
+          token?: string
+          used?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

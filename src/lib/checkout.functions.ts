@@ -68,8 +68,22 @@ const TIER_AMOUNTS = {
   ultimate: 3300,
 } as const;
 
+const PaymentIntentSchema = InputSchema.extend({
+  quizToken: z.string().min(1),
+});
+
+export const generateQuizToken = createServerFn({ method: "POST" })
+  .handler(async () => {
+    const { randomBytes } = await import("crypto");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const token = randomBytes(32).toString("hex");
+    const { error } = await supabaseAdmin.from("quiz_tokens" as never).insert({ token } as never);
+    if (error) throw new Error(`Token error: ${error.message}`);
+    return { quizToken: token };
+  });
+
 export const createPaymentIntent = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => InputSchema.parse(input))
+  .inputValidator((input: unknown) => PaymentIntentSchema.parse(input))
   .handler(async ({ data }) => {
     const stripeKey = process.env.STRIPE_SECRET_KEY;
     const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY;
@@ -78,6 +92,24 @@ export const createPaymentIntent = createServerFn({ method: "POST" })
     const { default: Stripe } = await import("stripe");
     const { randomBytes } = await import("crypto");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const { data: tokenRow, error: tokenErr } = await supabaseAdmin
+      .from("quiz_tokens" as never)
+      .select("token, used, created_at")
+      .eq("token", data.quizToken)
+      .eq("used", false)
+      .gt("created_at", cutoff)
+      .maybeSingle();
+    if (tokenErr) throw new Error(`Token check failed: ${tokenErr.message}`);
+    if (!tokenRow) throw new Error("Invalid session. Please complete the quiz again.");
+
+    const { error: markErr } = await supabaseAdmin
+      .from("quiz_tokens" as never)
+      .update({ used: true } as never)
+      .eq("token", data.quizToken)
+      .eq("used", false);
+    if (markErr) throw new Error("Invalid session. Please complete the quiz again.");
 
     const token = randomBytes(32).toString("hex");
 

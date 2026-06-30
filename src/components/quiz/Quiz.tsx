@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Sparkles, Star, Check, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateQuizToken } from "@/lib/checkout.functions";
 import { ProgressBar } from "./widgets/ProgressBar";
 import { OptionCard } from "./widgets/OptionCard";
 import { StressSlider } from "./widgets/StressSlider";
@@ -122,6 +124,10 @@ export function Quiz() {
   const [emailInput, setEmailInput] = useState("");
   const [partnerNameInput, setPartnerNameInput] = useState("");
   const [teaserParagraph, setTeaserParagraph] = useState<string | null>(null);
+  const [quizToken, setQuizToken] = useState<string | null>(null);
+  const tokenRequested = useRef(false);
+  const genToken = useServerFn(generateQuizToken);
+
 
   const step = STEPS[idx];
   const next = () => setIdx((i) => {
@@ -149,8 +155,18 @@ export function Quiz() {
 
   useEffect(() => {
     if (step.kind === "hero") track("quiz_started", {});
-    if (step.kind === "loader") track("quiz_completed", {});
+    if (step.kind === "loader") {
+      track("quiz_completed", {});
+      if (!tokenRequested.current) {
+        tokenRequested.current = true;
+        genToken().then((r) => setQuizToken(r.quizToken)).catch((e) => {
+          console.error("quiz token error", e);
+          tokenRequested.current = false;
+        });
+      }
+    }
   }, [idx]);
+
 
   const trackAnswer = (questionId: string, value: string | number) => {
     const pct = Math.round((idx / STEPS.length) * 100);
@@ -342,8 +358,9 @@ export function Quiz() {
         )}
 
         {step.kind === "paywall" && answers.dob && (
-          <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} partnerName={answers.partnerName as string | undefined} />
+          <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} partnerName={answers.partnerName as string | undefined} quizToken={quizToken} />
         )}
+
 
       </main>
     </div>
