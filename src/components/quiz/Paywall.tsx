@@ -112,6 +112,8 @@ export function Paywall({
           fullName: name,
           dob: { day: dob.day, month: dob.month, year: dob.year },
           partnerName: partnerName || null,
+          quizToken,
+
         },
       });
       if (!res.clientSecret) throw new Error("No client secret");
