@@ -358,8 +358,9 @@ export function Quiz() {
         )}
 
         {step.kind === "paywall" && answers.dob && (
-          <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} partnerName={answers.partnerName as string | undefined} />
+          <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} partnerName={answers.partnerName as string | undefined} quizToken={quizToken} />
         )}
+
 
       </main>
     </div>
