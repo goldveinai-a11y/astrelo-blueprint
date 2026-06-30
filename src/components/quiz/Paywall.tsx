@@ -90,6 +90,10 @@ export function Paywall({
       toast.error("Email is missing — please go back and enter your email.");
       return;
     }
+    if (!quizToken) {
+      toast.error("Session not ready — please wait a moment and try again.");
+      return;
+    }
     if (loading) return;
     const value = TIER_PRICE_USD[tierRef.current];
     track("begin_checkout", {
