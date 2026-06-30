@@ -14,19 +14,18 @@ export function OptionCard({
       type="button"
       onClick={onClick}
       className={cn(
-        "group flex w-full items-center justify-between gap-3 rounded-2xl border-2 bg-card px-5 py-4 text-left text-[15px] font-medium leading-snug text-foreground shadow-card transition-all",
-        "hover:border-violet hover:-translate-y-0.5",
-        selected ? "border-violet ring-glow" : "border-border",
+        "group flex w-full items-center justify-between gap-3 border-b border-[color:var(--paper-ink)]/15 px-2 py-4 text-left text-[15px] font-[family-name:var(--font-serif-body)] leading-snug transition-colors",
+        selected ? "text-[color:var(--navy)] font-semibold" : "text-[color:var(--paper-ink)]",
       )}
     >
       <span>{label}</span>
       <span
         className={cn(
-          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-          selected ? "border-violet bg-violet" : "border-border",
+          "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors",
+          selected ? "border-[color:var(--violet)] bg-[color:var(--violet)]" : "border-[color:var(--paper-ink)]/35",
         )}
       >
-        {selected && <span className="h-2 w-2 rounded-full bg-white" />}
+        {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
       </span>
     </button>
   );

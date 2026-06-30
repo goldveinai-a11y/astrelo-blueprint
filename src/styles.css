@@ -37,6 +37,8 @@
   --color-gold: var(--gold);
   --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif-display: "Playfair Display", Georgia, serif;
+  --font-serif-body: "Lora", Georgia, serif;
 }
 
 :root {
@@ -71,6 +73,11 @@
   --gradient-gold: linear-gradient(135deg, oklch(0.78 0.16 75), oklch(0.88 0.14 95));
   --shadow-card: 0 1px 2px oklch(0.22 0.07 265 / 0.04), 0 4px 14px oklch(0.22 0.07 265 / 0.06);
   --shadow-glow: 0 0 0 4px oklch(0.55 0.22 295 / 0.12), 0 12px 30px oklch(0.55 0.22 295 / 0.18);
+
+  --paper: oklch(0.95 0.02 75);
+  --paper-2: oklch(0.92 0.025 70);
+  --paper-ink: oklch(0.22 0.03 50);
+  --paper-muted: oklch(0.45 0.02 50);
 }
 
 @layer base {
@@ -98,4 +105,7 @@
   }
   .matrix-spin { animation: spin 8s linear infinite; }
   .blur-page { filter: blur(5px); }
+  .quiz-paper { background: linear-gradient(var(--paper), var(--paper-2)); }
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 }

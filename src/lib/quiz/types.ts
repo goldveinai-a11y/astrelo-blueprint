@@ -25,6 +25,16 @@ export type Answers = {
   name?: string;
   email?: string;
   partnerName?: string;
+  birthTime?: string;
+  birthTimeUnknown?: boolean;
+  birthPlace?: GeoPoint;
+};
+
+export type GeoPoint = {
+  name: string;
+  lat: number;
+  lng: number;
 };
 
 // partnerName added via quiz step
+// birthTime/birthTimeUnknown/birthPlace added for Human Design & Gene Keys chapters

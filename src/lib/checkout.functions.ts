@@ -17,6 +17,13 @@ const InputSchema = z.object({
     year: z.number().int().min(1900).max(2100),
   }),
   partnerName: z.string().optional().nullable(),
+  birthTime: z.string().optional().nullable(),
+  birthTimeUnknown: z.boolean().optional(),
+  birthPlace: z.object({
+    name: z.string(),
+    lat: z.number(),
+    lng: z.number(),
+  }).optional().nullable(),
 });
 
 export const createCheckoutSession = createServerFn({ method: "POST" })
@@ -122,6 +129,11 @@ export const createPaymentIntent = createServerFn({ method: "POST" })
       dob_year: data.dob.year,
       tier: data.tier,
       partner_name: data.partnerName ?? null,
+      birth_time: data.birthTime ?? null,
+      birth_time_unknown: data.birthTimeUnknown ?? false,
+      birth_place_name: data.birthPlace?.name ?? null,
+      birth_lat: data.birthPlace?.lat ?? null,
+      birth_lng: data.birthPlace?.lng ?? null,
       status: "pending",
     });
     if (insertErr) throw new Error(`DB error: ${insertErr.message}`);

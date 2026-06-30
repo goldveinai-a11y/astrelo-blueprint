@@ -17,18 +17,17 @@ export function MilestoneScreen({
 }) {
   return (
     <div className="quiz-fade-in flex flex-col items-center text-center">
-      <div className="relative mb-6 h-48 w-48 overflow-hidden rounded-3xl shadow-card">
-        <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />
-        <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
+      <div className="relative mb-6 h-44 w-44 overflow-hidden border border-[color:var(--paper-ink)]/15">
+        <img src={image} alt="" className="h-full w-full object-cover grayscale-[15%]" loading="lazy" />
       </div>
       {eyebrow && (
-        <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-violet">{eyebrow}</p>
+        <p className="mb-3 font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--violet)]">{eyebrow}</p>
       )}
-      <h2 className="text-2xl font-bold text-navy">{title}</h2>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{body}</p>
+      <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">{title}</h2>
+      <p className="mt-4 font-[family-name:var(--font-serif-body)] text-[14px] leading-relaxed text-[color:var(--paper-muted)] max-w-[280px]">{body}</p>
       <button
         onClick={onNext}
-        className="pulse-soft mt-8 inline-flex items-center justify-center gap-2 rounded-2xl bg-navy px-8 py-4 text-sm font-bold text-white transition-transform hover:-translate-y-0.5"
+        className="mt-9 inline-flex items-center justify-center gap-2 bg-[color:var(--navy)] px-8 py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)] transition-transform hover:-translate-y-0.5"
       >
         {cta} <ArrowRight className="h-4 w-4" />
       </button>

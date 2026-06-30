@@ -6,13 +6,15 @@ import { ProgressBar } from "./widgets/ProgressBar";
 import { OptionCard } from "./widgets/OptionCard";
 import { StressSlider } from "./widgets/StressSlider";
 import { DateOfBirthPicker } from "./widgets/DateOfBirthPicker";
+import { TimeOfBirthPicker } from "./widgets/TimeOfBirthPicker";
+import { PlaceSearch } from "./widgets/PlaceSearch";
 import { AILoader, type TeaserPayload } from "./widgets/AILoader";
 import { MilestoneScreen } from "./MilestoneScreen";
 import { Paywall } from "./Paywall";
 import { BarnumReveal } from "./BarnumReveal";
 import { track } from "@/lib/analytics";
 import { lifePath, zodiacSign } from "@/lib/quiz/numerology";
-import type { Answers } from "@/lib/quiz/types";
+import type { Answers, GeoPoint } from "@/lib/quiz/types";
 import type { DOB } from "@/lib/quiz/numerology";
 import heroAsset from "@/assets/quiz/hero-numerology.jpg.asset.json";
 const heroImg = heroAsset.url;
@@ -26,6 +28,8 @@ type SliderStep = { kind: "slider"; key: keyof Answers; question: string; minLab
 type Step =
   | { kind: "hero" }
   | { kind: "dob" }
+  | { kind: "birthTime" }
+  | { kind: "birthPlace" }
   | { kind: "numerology_insight" }
   | { kind: "partnerName" }
   | ChoiceStep
@@ -42,48 +46,50 @@ type Step =
 
 const STEPS: Step[] = [
   { kind: "hero" },
-  { kind: "choice", key: "gender", question: "Select your biological or energetic alignment:", options: ["Female", "Male", "Non-binary"] },
+  { kind: "choice", key: "gender", question: "Let's start simply.", options: ["Female", "Male", "Non-binary"] },
   { kind: "dob" },
+  { kind: "birthTime" },
+  { kind: "birthPlace" },
   { kind: "numerology_insight" },
-  { kind: "choice", key: "relationship", question: "What is your current relationship status?", options: ["Single", "In a relationship", "Married", "It's complicated"] },
+  { kind: "choice", key: "relationship", question: "Where are you in your story right now?", options: ["Single", "In a relationship", "Married", "It's complicated"] },
   { kind: "partnerName" },
-  { kind: "choice", key: "focus", question: "What is your primary focus for the next 6 months?", options: [
-    "Breaking through financial stagnation & finding my wealthy niche",
-    "Attracting a deeply aligned partner or healing current relationships",
-    "Finding my true purpose and escaping burnout",
+  { kind: "choice", key: "focus", question: "What chapter of your life are you in right now?", options: [
+    "Finding clarity around money and direction",
+    "Healing or deepening a relationship",
+    "Understanding who I actually am, underneath it all",
   ] },
-  { kind: "choice", key: "anxiety", question: "Do you experience high anxiety when making major life choices?", options: ["Yes, frequently", "Sometimes", "Rarely, I trust my gut"] },
+  { kind: "choice", key: "anxiety", question: "When a big decision is in front of you, what's your honest pattern?", options: ["I second-guess myself for weeks", "I weigh it carefully, then move", "I trust my gut almost immediately"] },
   { kind: "milestone", n: 1 },
   { kind: "did_you_know", variant: 1 },
-  { kind: "slider", key: "financialStress", question: "Rate your current financial stress level", minLabel: "Peaceful", maxLabel: "Constant Anxiety" },
-  { kind: "slider", key: "energy", question: "Rate your average daily energy levels", minLabel: "Completely Drained", maxLabel: "Fully Charged" },
-  { kind: "slider", key: "purpose", question: "How close are you to living your ultimate life purpose?", minLabel: "Lost", maxLabel: "Fully Aligned" },
-  { kind: "choice", key: "block", question: "What do you feel is holding you back the most right now?", options: [
-    "Fear of failure & self-doubt", "Lack of physical energy", "Wrong environment / people", "Unexplainable bad luck",
+  { kind: "slider", key: "financialStress", question: "How does money sit with you these days?", minLabel: "At ease", maxLabel: "Heavy on my mind" },
+  { kind: "slider", key: "energy", question: "How full is your tank, most days?", minLabel: "Running on empty", maxLabel: "Genuinely energized" },
+  { kind: "slider", key: "purpose", question: "How close do you feel to the life that actually fits you?", minLabel: "Still searching", maxLabel: "Right where I should be" },
+  { kind: "choice", key: "block", question: "If something is in your way right now, what is it really?", options: [
+    "Doubting myself before I start", "Low energy, even when I want to act", "Being surrounded by the wrong people or place", "Something I can't quite name",
   ] },
-  { kind: "choice", key: "uphill", question: "Do you often feel like you work 10× harder than others, but hit an invisible glass ceiling?", options: [
-    "Yes, constantly. It feels like an uphill battle.",
-    "Sometimes, especially when it comes to money.",
-    "No, things flow to me easily.",
+  { kind: "choice", key: "uphill", question: "Have you ever felt like you're capable of more than the life you're currently living?", options: [
+    "Often — it's a quiet, constant feeling.",
+    "Sometimes, mostly around money.",
+    "Not really — things tend to flow.",
   ] },
   { kind: "before_after" },
   { kind: "milestone", n: 2 },
-  { kind: "choice", key: "finHabit", question: "How do you usually handle unexpected financial challenges?", options: ["I panic and freeze", "I obsessively calculate every cent", "I ignore it and hope it resolves"] },
+  { kind: "choice", key: "finHabit", question: "When money surprises you — good or bad — what's your first reaction?", options: ["I freeze for a moment", "I go straight to the numbers", "I let it sit before I deal with it"] },
   { kind: "choice", key: "signs", question: "Do you often notice repeating numbers (like 11:11, 222, 777) on clocks, licenses, or receipts?", options: ["Yes, constantly", "Rarely", "Never noticed"] },
-  { kind: "choice", key: "fear", question: "What keeps you awake at night when thinking about your future?", options: ["The fear of running out of money", "The fear of ending up lonely", "The fear of wasting my true potential"] },
-  { kind: "choice", key: "focusEase", question: "How easily do you get distracted from your big, long-term goals?", options: ["Very easily, I lose motivation", "Only when under severe stress", "Never, I have laser-focus"] },
-  { kind: "choice", key: "empathy", question: "Do you feel like you easily absorb other people's negative energy or moods?", options: ["Yes, I am a total emotional sponge", "Sometimes, depending on the person", "No, I am completely shielded"] },
+  { kind: "choice", key: "fear", question: "When you imagine your next chapter, what feeling shows up first?", options: ["A quiet worry about money", "A fear of ending up alone", "A feeling that I'm wasting something in me"] },
+  { kind: "choice", key: "focusEase", question: "When you set your sights on something big, how often does life pull you off course?", options: ["Very easily, I lose momentum", "Only when things get really hard", "Rarely — I tend to stay the course"] },
+  { kind: "choice", key: "empathy", question: "Do other people's moods tend to become your moods?", options: ["Yes, almost always", "Sometimes, depending who", "Not really — I stay separate"] },
   { kind: "testimonial" },
   { kind: "choice", key: "intuition", question: "How often does your first gut feeling about a person or decision prove to be right?", options: ["Almost 100% of the time", "50/50", "I rarely listen to my gut"] },
-  { kind: "choice", key: "lastHappy", question: "When was the last time you felt truly happy, abundant, and in complete flow?", options: ["In the last 30 days", "More than a year ago", "Honestly, I can't even remember"] },
-  { kind: "choice", key: "readiness", question: "If your report reveals an uncomfortable truth about your career or relationship, will you act on it?", options: ["Yes, I want the raw truth", "I will think about it", "I am just curious"] },
+  { kind: "choice", key: "lastHappy", question: "When did you last feel completely, unmistakably yourself?", options: ["Recently", "It's been a while", "Honestly, I'm not sure"] },
+  { kind: "choice", key: "readiness", question: "If your book tells you something you didn't expect, what would you do with it?", options: ["Sit with it, then act", "Think it over first", "I'm just here out of curiosity"] },
   { kind: "choice", key: "occupation", question: "What is your current occupational status?", options: ["9-to-5 Employee", "Freelancer / Creator", "Business Owner", "Unemployed / Transitioning"] },
-  { kind: "choice", key: "precision", question: "Which section of your matrix should our AI compute with maximum precision?", options: [
-    "Exact dates for my financial breakthrough",
-    "Karmic compatibility with my specific partner",
-    "Daily energy protection techniques",
+  { kind: "choice", key: "precision", question: "Which part of your book matters most to you right now?", options: [
+    "The exact timing of what's coming next",
+    "How compatible I really am with someone specific",
+    "What's been quietly blocking me, and why",
   ] },
-  { kind: "choice", key: "karma", question: "Do you believe that patterns from your past or family lineage are holding you back?", options: ["Yes, definitely", "No, I don't think so", "I want the matrix to prove it"] },
+  { kind: "choice", key: "karma", question: "Do you believe that patterns from your past or family lineage are holding you back?", options: ["Yes, definitely", "No, I don't think so", "I want my book to show me"] },
   { kind: "milestone", n: 3 },
   { kind: "did_you_know", variant: 2 },
   { kind: "name" },
@@ -95,10 +101,10 @@ const STEPS: Step[] = [
 ];
 
 const MILESTONES = {
-  1: { image: ms1, eyebrow: "Milestone 1 of 4", title: "Your Core Vibration is now locked.", body: "Based on your birth date, you possess a rare alignment of the Crown Number. Only 14% of people carry this exact cosmic blueprint. It means your analytical mind is incredibly sharp, but your current environment might be actively suffocating your inner drive. Let's measure your personal alignment to see exactly where the energy leak is.", cta: "Analyze My Alignment 📊" },
-  2: { image: ms2, eyebrow: "Milestone 2 of 4", title: "We hear you. And it is NOT your fault.", body: "Looking at your alignment scores, this is a textbook symptom of a hidden Karmic Debt block. You aren't lazy. You are just driving through life with the handbrake pulled up. In the next section we'll analyze your psychological patterns to calculate the exact timeline when this block can be permanently cleared.", cta: "Identify My Patterns 🧠" },
-  3: { image: ms3, eyebrow: "64% of your matrix compiled ⚡", title: "Amazing focus.", body: "Your answers regarding the fear of wasting potential confirm that you are currently approaching a major Turning Point Cycle. Missing this energetic window could lock you in your current stagnation loop for another 7 years. Are you ready to see the radical changes your numbers require?", cta: "Yes, I'm ready to act 🧭" },
-  4: { image: ms4, eyebrow: "Calculation Phase 1: Complete 🎉", title: "You've done the hard work.", body: "Your dedication is incredible. We have successfully isolated the exact core blocks holding back your Money, Love, and Inner Peace. The mathematical algorithm is now ready to compile your personal Numerology Blueprint. Let's secure your profile.", cta: "Proceed to My Results ➡️" },
+  1: { image: ms1, eyebrow: "Milestone", title: "Your Life Path is taking shape.", body: "Based on your birth date, a clear pattern is already emerging — the kind most people never get named for them. Let's see what's shaping it.", cta: "Continue →" },
+  2: { image: ms2, eyebrow: "Milestone", title: "That's not a flaw — it's a pattern.", body: "What you just described has a name in your chart. A few more questions, and we'll know exactly which one.", cta: "Continue →" },
+  3: { image: ms3, eyebrow: "Milestone", title: "Your book is two-thirds written.", body: "What you've shared so far points to a real turning point in your numbers — not vague, a specific one. Worth seeing clearly.", cta: "Continue →" },
+  4: { image: ms4, eyebrow: "Milestone", title: "The hard part's done.", body: "Everything we need is here. Let's put your name on the cover.", cta: "See my book →" },
 } as const;
 
 const LP_LABEL: Record<number, { title: string; emoji: string; tagline: string }> = {
@@ -120,6 +126,9 @@ export function Quiz() {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [dob, setDob] = useState<DOB | undefined>();
+  const [birthTime, setBirthTime] = useState<string | undefined>();
+  const [birthTimeUnknown, setBirthTimeUnknown] = useState(false);
+  const [birthPlace, setBirthPlace] = useState<GeoPoint | undefined>();
   const [nameInput, setNameInput] = useState("");
   const [emailInput, setEmailInput] = useState("");
   const [partnerNameInput, setPartnerNameInput] = useState("");
@@ -191,18 +200,18 @@ export function Quiz() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col bg-background">
+    <div className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col quiz-paper">
       {showHeader && (
-        <header className="sticky top-0 z-20 bg-background/90 px-5 pb-3 pt-4 backdrop-blur">
+        <header className="sticky top-0 z-20 bg-[color:var(--paper)]/95 px-5 pb-3 pt-4 backdrop-blur">
           <div className="mb-3 flex items-center justify-between">
             <button
               onClick={back}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+              className="flex h-9 w-9 items-center justify-center text-[color:var(--paper-muted)] hover:text-[color:var(--navy)]"
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
-            <p className="text-xs font-bold uppercase tracking-widest text-navy">Astrelo</p>
+            <p className="font-[family-name:var(--font-serif-display)] text-[13px] font-bold tracking-wide text-[color:var(--navy)]">Astrelo</p>
             <div className="h-9 w-9" />
           </div>
           <ProgressBar value={progress} />
@@ -214,11 +223,11 @@ export function Quiz() {
         {step.kind === "hero" && <Hero onContinue={next} />}
 
         {step.kind === "dob" && (
-          <div className="quiz-fade-in space-y-6">
+          <div className="quiz-fade-in space-y-7">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-violet mb-2">Step 1 of 2</p>
-              <h2 className="text-[22px] font-bold leading-tight text-navy">Enter your date of birth</h2>
-              <p className="mt-2 text-sm text-muted-foreground">We use this to calculate your Life Path number, karmic cycles, and energetic windows.</p>
+              <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--violet)] mb-2">A few specifics</p>
+              <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">When were you born?</h2>
+              <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[14px] text-[color:var(--paper-muted)]">This is the seed your whole chart grows from.</p>
             </div>
             <DateOfBirthPicker onChange={setDob} />
             <button
@@ -230,9 +239,60 @@ export function Quiz() {
                   next();
                 }
               }}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white transition-all disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full items-center justify-center gap-2 bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)] transition-all disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Calculate My Numbers <ArrowRight className="h-4 w-4" />
+              Continue <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {step.kind === "birthTime" && (
+          <div className="quiz-fade-in space-y-7">
+            <div>
+              <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--violet)] mb-2">A few specifics</p>
+              <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">What time were you born?</h2>
+              <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[14px] text-[color:var(--paper-muted)]">This pins the exact sky over you the moment you arrived.</p>
+            </div>
+            <TimeOfBirthPicker
+              value={birthTime}
+              unknown={birthTimeUnknown}
+              onChange={setBirthTime}
+              onToggleUnknown={() => setBirthTimeUnknown((u) => !u)}
+            />
+            <button
+              onClick={() => {
+                const time = birthTimeUnknown ? "12:00" : (birthTime ?? "12:00");
+                setAnswers((a) => ({ ...a, birthTime: time, birthTimeUnknown }));
+                trackAnswer("birth_time", birthTimeUnknown ? "unknown" : time);
+                next();
+              }}
+              className="flex w-full items-center justify-center gap-2 bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)] transition-all"
+            >
+              Continue <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {step.kind === "birthPlace" && (
+          <div className="quiz-fade-in space-y-7">
+            <div>
+              <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--violet)] mb-2">Almost there</p>
+              <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">Where were you born?</h2>
+              <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[14px] text-[color:var(--paper-muted)]">City is enough — we'll find the rest.</p>
+            </div>
+            <PlaceSearch value={birthPlace} onChange={setBirthPlace} />
+            <button
+              disabled={!birthPlace}
+              onClick={() => {
+                if (birthPlace) {
+                  setAnswers((a) => ({ ...a, birthPlace }));
+                  trackAnswer("birth_place", birthPlace.name);
+                  next();
+                }
+              }}
+              className="flex w-full items-center justify-center gap-2 bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)] transition-all disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Continue <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         )}
@@ -284,8 +344,8 @@ export function Quiz() {
         {step.kind === "email" && (
           <SimpleInput
             key="email"
-            title="Where should we send your Blueprint?"
-            sub="Your report will be emailed once generated."
+            title="Where should we send your book?"
+            sub="Your book will be emailed once it's ready."
             placeholder="your@email.com"
             type="email"
             value={emailInput}
@@ -303,11 +363,11 @@ export function Quiz() {
         )}
 
         {step.kind === "partnerName" && (
-          <div className="quiz-fade-in space-y-5">
+          <div className="quiz-fade-in space-y-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-violet mb-2">Optional</p>
-              <h2 className="text-[22px] font-bold leading-tight text-navy">What is your partner's name?</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Used to personalise your Love Compatibility chapter.</p>
+              <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--violet)] mb-2">Optional</p>
+              <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">What is your partner's name?</h2>
+              <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[14px] text-[color:var(--paper-muted)]">Used to write your Love Compatibility chapter.</p>
             </div>
             <input
               type="text"
@@ -315,16 +375,16 @@ export function Quiz() {
               onChange={(e) => setPartnerNameInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") { setAnswers((a) => ({ ...a, partnerName: partnerNameInput.trim() || undefined })); next(); } }}
               placeholder="e.g. Alex"
-              className="h-14 w-full rounded-2xl border-2 border-border bg-card px-5 text-base font-medium outline-none transition-colors focus:border-violet"
+              className="h-12 w-full border-b border-[color:var(--paper-ink)]/20 bg-transparent px-1 text-[15px] font-[family-name:var(--font-serif-body)] italic outline-none transition-colors focus:border-[color:var(--violet)]"
             />
             <button
               onClick={() => { setAnswers((a) => ({ ...a, partnerName: partnerNameInput.trim() || undefined })); next(); }}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white"
+              className="flex w-full items-center justify-center gap-2 bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)]"
             >
               Continue <ArrowRight className="h-4 w-4" />
             </button>
-            <button onClick={next} className="w-full text-center text-sm text-muted-foreground underline">
-              Skip — generate without partner name
+            <button onClick={next} className="w-full text-center font-[family-name:var(--font-sans)] text-[12.5px] text-[color:var(--paper-muted)] underline">
+              Skip — write it without a partner name
             </button>
           </div>
         )}
@@ -358,7 +418,16 @@ export function Quiz() {
         )}
 
         {step.kind === "paywall" && answers.dob && (
-          <Paywall name={answers.name || "you"} dob={answers.dob} email={answers.email || emailInput} partnerName={answers.partnerName as string | undefined} quizToken={quizToken} />
+          <Paywall
+            name={answers.name || "you"}
+            dob={answers.dob}
+            email={answers.email || emailInput}
+            partnerName={answers.partnerName as string | undefined}
+            birthTime={answers.birthTime as string | undefined}
+            birthTimeUnknown={answers.birthTimeUnknown as boolean | undefined}
+            birthPlace={answers.birthPlace as GeoPoint | undefined}
+            quizToken={quizToken}
+          />
         )}
 
 
@@ -371,33 +440,33 @@ export function Quiz() {
 function Hero({ onContinue }: { onContinue: () => void }) {
   return (
     <div className="quiz-fade-in flex flex-col">
-      <div className="mx-auto mt-2 mb-4 flex items-center gap-2 rounded-full bg-cosmic px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-white">
-        <Star className="h-3 w-3 fill-gold text-gold" /> 2,300+ people decoded their numbers
+      <div className="mx-auto mt-2 mb-5 flex items-center gap-2 border border-[color:var(--gold)]/40 px-4 py-1.5 font-[family-name:var(--font-sans)] text-[10.5px] font-bold uppercase tracking-widest text-[color:var(--navy)]">
+        <Star className="h-3 w-3 fill-[color:var(--gold)] text-[color:var(--gold)]" /> 2,300+ people have read theirs
       </div>
-      <div className="relative mx-auto mb-6 aspect-square w-full max-w-[320px] overflow-hidden rounded-3xl shadow-card">
-        <img src={heroImg} alt="Discover what your numbers mean" className="h-full w-full object-cover" />
+      <div className="relative mx-auto mb-7 aspect-square w-full max-w-[320px] overflow-hidden border border-[color:var(--paper-ink)]/15">
+        <img src={heroImg} alt="Discover what your numbers mean" className="h-full w-full object-cover grayscale-[10%]" />
       </div>
-      <h1 className="text-center text-[26px] font-bold leading-tight text-navy">
-        What Does Your Birth Date Actually Say About You?
+      <h1 className="text-center font-[family-name:var(--font-serif-display)] text-[26px] font-extrabold leading-tight text-[color:var(--navy)]">
+        Your Personal Astrology Book — Written From Your Birth Date
       </h1>
-      <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground">
-        A 2-minute quiz that reveals your Life Path, karmic blocks, and what 2026 holds for you.
+      <p className="mt-3 text-center font-[family-name:var(--font-serif-body)] text-[14px] leading-relaxed text-[color:var(--paper-muted)]">
+        A short quiz, then a real chapter written for you — free to read before you decide.
       </p>
       <button
         onClick={onContinue}
-        className="pulse-soft mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white transition-all"
+        className="mt-7 flex w-full items-center justify-center gap-2 bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)] transition-all"
       >
-        Reveal My Blueprint <ArrowRight className="h-4 w-4" />
+        Begin My Book <ArrowRight className="h-4 w-4" />
       </button>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-[11px]">
-        <div className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 font-medium text-muted-foreground">
-          <Sparkles className="h-3 w-3 text-violet" /> 2-min quiz
+      <div className="mt-4 grid grid-cols-2 gap-2 font-[family-name:var(--font-sans)] text-[11px]">
+        <div className="flex items-center justify-center gap-1.5 border border-[color:var(--paper-ink)]/15 px-3 py-2 font-medium text-[color:var(--paper-muted)]">
+          <Sparkles className="h-3 w-3 text-[color:var(--violet)]" /> 2-min quiz
         </div>
-        <div className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 font-medium text-muted-foreground">
-          <Star className="h-3 w-3 fill-gold text-gold" /> Rated 4.8 / 5
+        <div className="flex items-center justify-center gap-1.5 border border-[color:var(--paper-ink)]/15 px-3 py-2 font-medium text-[color:var(--paper-muted)]">
+          <Star className="h-3 w-3 fill-[color:var(--gold)] text-[color:var(--gold)]" /> Rated 4.8 / 5
         </div>
       </div>
-      <p className="mt-4 text-center text-[10px] text-muted-foreground">
+      <p className="mt-4 text-center font-[family-name:var(--font-sans)] text-[10px] text-[color:var(--paper-muted)]">
         By continuing you agree with Terms of Use & Privacy Policy.
       </p>
     </div>
@@ -410,32 +479,32 @@ function NumerologyInsightView({ dob, onContinue }: { dob: DOB; onContinue: () =
   const zodiac = zodiacSign(dob.month, dob.day);
   const label = LP_LABEL[lp] ?? LP_LABEL[1];
   return (
-    <div className="quiz-fade-in flex min-h-[80vh] flex-col items-center justify-center space-y-6 text-center">
-      <p className="text-xs font-bold uppercase tracking-[0.25em] text-violet">Your Numbers Decoded</p>
+    <div className="quiz-fade-in flex min-h-[80vh] flex-col items-center justify-center space-y-7 text-center">
+      <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--violet)]">Your First Number</p>
       <div className="flex items-center gap-4">
-        <div className="flex flex-col items-center rounded-2xl border-2 border-violet/30 bg-card px-6 py-4 shadow-card">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Life Path</p>
-          <p className="text-5xl font-bold text-navy">{lp}</p>
+        <div className="flex flex-col items-center border border-[color:var(--violet)]/30 px-6 py-4">
+          <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-wider text-[color:var(--paper-muted)]">Life Path</p>
+          <p className="font-[family-name:var(--font-serif-display)] text-5xl font-extrabold text-[color:var(--navy)]">{lp}</p>
         </div>
-        <div className="text-3xl">·</div>
-        <div className="flex flex-col items-center rounded-2xl border-2 border-gold/40 bg-card px-6 py-4 shadow-card">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Zodiac</p>
-          <p className="text-lg font-bold text-navy">{zodiac}</p>
+        <div className="font-[family-name:var(--font-serif-display)] text-3xl text-[color:var(--paper-muted)]">·</div>
+        <div className="flex flex-col items-center border border-[color:var(--gold)]/50 px-6 py-4">
+          <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-wider text-[color:var(--paper-muted)]">Zodiac</p>
+          <p className="font-[family-name:var(--font-serif-display)] text-lg font-bold text-[color:var(--navy)]">{zodiac}</p>
         </div>
       </div>
       <div className="space-y-2">
         <p className="text-3xl">{label.emoji}</p>
-        <h2 className="text-2xl font-bold text-navy">{label.title}</h2>
-        <p className="mx-auto max-w-xs text-sm leading-relaxed text-muted-foreground">{label.tagline}</p>
+        <h2 className="font-[family-name:var(--font-serif-display)] text-2xl font-extrabold text-[color:var(--navy)]">{label.title}</h2>
+        <p className="mx-auto max-w-xs font-[family-name:var(--font-serif-body)] text-[14px] leading-relaxed text-[color:var(--paper-muted)]">{label.tagline}</p>
       </div>
-      <div className="w-full rounded-2xl bg-violet/10 px-5 py-3 text-[12px] font-medium text-violet">
-        Only 1 in 12 people share this Life Path. Your blueprint goes deeper than your zodiac sign.
+      <div className="w-full bg-[color:var(--violet)]/8 px-5 py-3 font-[family-name:var(--font-serif-body)] italic text-[12.5px] text-[color:var(--violet)]">
+        Only 1 in 12 people share this Life Path. There's a lot more your numbers haven't told you yet.
       </div>
       <button
         onClick={onContinue}
-        className="w-full rounded-2xl bg-navy py-4 text-sm font-bold text-gold"
+        className="w-full bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)]"
       >
-        Continue Building My Blueprint →
+        Keep Going →
       </button>
     </div>
   );
@@ -444,28 +513,28 @@ function NumerologyInsightView({ dob, onContinue }: { dob: DOB; onContinue: () =
 // ─── Gender View (visual cards) ───────────────────────────────────────────────
 function GenderView({ value, onSelect }: { value: string | undefined; onSelect: (v: string) => void }) {
   return (
-    <div className="quiz-fade-in space-y-5">
-      <h2 className="text-[22px] font-bold leading-tight text-navy">Select your biological or energetic alignment:</h2>
+    <div className="quiz-fade-in space-y-6">
+      <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">Let's start with the basics.</h2>
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: "Female", gradient: "from-pink-400 via-purple-500 to-indigo-600", emoji: "🌸" },
-          { label: "Male", gradient: "from-blue-400 via-indigo-500 to-violet-600", emoji: "⚡" },
-        ].map(({ label, gradient, emoji }) => (
+          { label: "Female", tint: "oklch(0.62 0.25 340 / .12)" },
+          { label: "Male", tint: "oklch(0.55 0.22 295 / .12)" },
+        ].map(({ label, tint }) => (
           <button
             key={label}
             onClick={() => onSelect(label)}
-            className={`relative overflow-hidden rounded-2xl border-2 transition-all ${value === label ? "border-violet ring-2 ring-violet/30" : "border-border"}`}
+            className={`overflow-hidden border transition-all ${value === label ? "border-[color:var(--violet)]" : "border-[color:var(--paper-ink)]/15"}`}
           >
-            <div className={`bg-gradient-to-br ${gradient} flex h-36 items-center justify-center text-4xl`}>
-              {emoji}
+            <div className="flex h-32 items-center justify-center font-[family-name:var(--font-serif-display)] text-3xl text-[color:var(--navy)]" style={{ background: tint }}>
+              {label[0]}
             </div>
-            <div className="bg-card py-2.5 text-sm font-bold text-navy">{label}</div>
+            <div className="py-2.5 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--navy)]">{label}</div>
           </button>
         ))}
       </div>
       <button
         onClick={() => onSelect("Non-binary")}
-        className={`w-full rounded-2xl border-2 py-3 text-sm font-medium transition-all ${value === "Non-binary" ? "border-violet bg-violet/10 text-violet" : "border-border text-muted-foreground"}`}
+        className={`w-full border py-3 font-[family-name:var(--font-sans)] text-[13px] font-medium transition-all ${value === "Non-binary" ? "border-[color:var(--violet)] bg-[color:var(--violet)]/8 text-[color:var(--violet)]" : "border-[color:var(--paper-ink)]/15 text-[color:var(--paper-muted)]"}`}
       >
         Non-binary / Prefer not to say
       </button>
@@ -477,14 +546,14 @@ function GenderView({ value, onSelect }: { value: string | undefined; onSelect: 
 const DID_YOU_KNOW = {
   1: {
     stat: "76%",
-    fact: "of financial blocks are tied to timing cycles — not effort or ability.",
-    detail: "Our algorithm identifies your specific cycle and shows exactly when the pattern breaks.",
+    fact: "of people say their hardest financial seasons lined up with a specific cycle in hindsight.",
+    detail: "Your book names your cycle — and roughly when the pattern breaks.",
     emoji: "💰",
   },
   2: {
     stat: "2×",
-    fact: "clearer decision-making reported by people who understand their core numbers.",
-    detail: "Not because numerology tells you what to do — but because you finally understand why you keep choosing the same things.",
+    fact: "Easier decisions, by their own account, once people understood their core numbers.",
+    detail: "Not because numerology tells you what to do — because you finally see why you keep choosing the same thing.",
     emoji: "🧭",
   },
 };
@@ -492,17 +561,16 @@ const DID_YOU_KNOW = {
 function DidYouKnowView({ variant, focus, onContinue }: { variant: 1 | 2; focus: string; onContinue: () => void }) {
   const data = DID_YOU_KNOW[variant];
   return (
-    <div className="quiz-fade-in flex flex-col space-y-6">
-      <p className="text-xs font-bold uppercase tracking-widest text-violet">Did you know?</p>
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-3">
-        <div className="text-5xl font-black text-navy">{data.stat}</div>
-        <p className="text-base font-semibold text-navy leading-snug">{data.fact}</p>
-        <p className="text-sm text-muted-foreground leading-relaxed">{data.detail}</p>
+    <div className="quiz-fade-in flex flex-col space-y-7">
+      <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-widest text-[color:var(--violet)]">Did you know?</p>
+      <div className="border border-[color:var(--paper-ink)]/15 p-6 space-y-3">
+        <div className="font-[family-name:var(--font-serif-display)] text-5xl font-black text-[color:var(--navy)]">{data.stat}</div>
+        <p className="font-[family-name:var(--font-serif-body)] text-[15px] font-semibold text-[color:var(--navy)] leading-snug">{data.fact}</p>
+        <p className="font-[family-name:var(--font-serif-body)] text-[13.5px] text-[color:var(--paper-muted)] leading-relaxed">{data.detail}</p>
       </div>
-      <div className="text-4xl text-center">{data.emoji}</div>
       <button
         onClick={onContinue}
-        className="w-full rounded-2xl bg-navy py-4 text-sm font-bold text-white flex items-center justify-center gap-2"
+        className="w-full bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)] flex items-center justify-center gap-2"
       >
         Continue <ArrowRight className="h-4 w-4" />
       </button>
@@ -528,32 +596,32 @@ function BeforeAfterView({ focus, onContinue }: { focus: string; onContinue: () 
     : ["True purpose unlocked", "Energetic alignment restored", "Month-by-month direction", "Burnout cycle broken"];
 
   return (
-    <div className="quiz-fade-in space-y-5">
-      <h2 className="text-[22px] font-bold leading-tight text-navy">Transform Your Journey</h2>
+    <div className="quiz-fade-in space-y-6">
+      <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">What Changes, Once You Know</h2>
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border-2 border-destructive/30 bg-destructive/5 p-4 space-y-2">
-          <p className="text-xs font-bold uppercase tracking-wider text-destructive">Before</p>
+        <div className="border border-[color:var(--paper-ink)]/15 p-4 space-y-2">
+          <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-wider text-[color:var(--paper-muted)]">Before</p>
           {beforeItems.map((item) => (
             <div key={item} className="flex items-start gap-2">
-              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-destructive" />
-              <p className="text-[11px] text-muted-foreground leading-snug">{item}</p>
+              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--paper-muted)]" />
+              <p className="font-[family-name:var(--font-serif-body)] text-[11.5px] text-[color:var(--paper-muted)] leading-snug">{item}</p>
             </div>
           ))}
         </div>
-        <div className="rounded-2xl border-2 border-green-500/30 bg-green-500/5 p-4 space-y-2">
-          <p className="text-xs font-bold uppercase tracking-wider text-green-600">After</p>
+        <div className="border border-[color:var(--gold)]/40 p-4 space-y-2">
+          <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-wider text-[color:var(--violet)]">After</p>
           {afterItems.map((item) => (
             <div key={item} className="flex items-start gap-2">
-              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600" />
-              <p className="text-[11px] text-muted-foreground leading-snug">{item}</p>
+              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--violet)]" />
+              <p className="font-[family-name:var(--font-serif-body)] text-[11.5px] text-[color:var(--navy)] leading-snug">{item}</p>
             </div>
           ))}
         </div>
       </div>
-      <p className="text-center text-xs text-muted-foreground">Your Blueprint was built to move you from left to right — with specific dates, not vague advice.</p>
+      <p className="text-center font-[family-name:var(--font-serif-body)] italic text-[12.5px] text-[color:var(--paper-muted)]">Your book was written to show you the way from left to right — with specific patterns, not vague advice.</p>
       <button
         onClick={onContinue}
-        className="w-full rounded-2xl bg-navy py-4 text-sm font-bold text-white flex items-center justify-center gap-2"
+        className="w-full bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)] flex items-center justify-center gap-2"
       >
         I want this <ArrowRight className="h-4 w-4" />
       </button>
@@ -564,29 +632,29 @@ function BeforeAfterView({ focus, onContinue }: { focus: string; onContinue: () 
 // ─── Testimonial ─────────────────────────────────────────────────────────────
 function TestimonialView({ onContinue }: { onContinue: () => void }) {
   return (
-    <div className="quiz-fade-in space-y-6">
-      <p className="text-xs font-bold uppercase tracking-widest text-violet">What others say</p>
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-4">
+    <div className="quiz-fade-in space-y-7">
+      <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-widest text-[color:var(--violet)]">What others say</p>
+      <div className="border border-[color:var(--paper-ink)]/15 p-6 space-y-4">
         <div className="flex gap-0.5">
-          {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-gold text-gold" />)}
+          {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-[color:var(--gold)] text-[color:var(--gold)]" />)}
         </div>
-        <p className="text-sm leading-relaxed text-foreground">
-          "I've tried astrology apps and zodiac readings for years. This was different — the Life Path analysis described patterns I never told anyone about. The financial timing windows were accurate within 2 weeks. It felt less like prediction and more like recognition."
+        <p className="font-[family-name:var(--font-serif-body)] text-[14px] leading-relaxed text-[color:var(--ink)]">
+          "I've tried astrology apps and zodiac readings for years. This was different — the Life Path chapter described patterns I never told anyone about. The timing chapter was accurate within 2 weeks. It felt less like prediction and more like recognition."
         </p>
-        <p className="text-xs font-bold text-muted-foreground">— Rachel M., 34 · Verified purchase</p>
+        <p className="font-[family-name:var(--font-sans)] text-[11px] font-bold text-[color:var(--paper-muted)]">— Rachel M., 34 · Verified purchase</p>
       </div>
-      <div className="rounded-2xl border border-border bg-card p-6 shadow-card space-y-4">
+      <div className="border border-[color:var(--paper-ink)]/15 p-6 space-y-4">
         <div className="flex gap-0.5">
-          {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-gold text-gold" />)}
+          {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-[color:var(--gold)] text-[color:var(--gold)]" />)}
         </div>
-        <p className="text-sm leading-relaxed text-foreground">
-          "The karmic debt section described my relationship pattern so precisely I had to re-read it three times. I've been on my own 'self-improvement journey' for 5 years — this cut through everything in 10 minutes."
+        <p className="font-[family-name:var(--font-serif-body)] text-[14px] leading-relaxed text-[color:var(--ink)]">
+          "The Karmic Architecture chapter described my relationship pattern so precisely I had to re-read it three times. I've been on my own 'self-improvement journey' for 5 years — this cut through everything in 10 minutes."
         </p>
-        <p className="text-xs font-bold text-muted-foreground">— James K., 41 · Verified purchase</p>
+        <p className="font-[family-name:var(--font-sans)] text-[11px] font-bold text-[color:var(--paper-muted)]">— James K., 41 · Verified purchase</p>
       </div>
       <button
         onClick={onContinue}
-        className="w-full rounded-2xl bg-navy py-4 text-sm font-bold text-white flex items-center justify-center gap-2"
+        className="w-full bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)] flex items-center justify-center gap-2"
       >
         Continue <ArrowRight className="h-4 w-4" />
       </button>
@@ -597,9 +665,9 @@ function TestimonialView({ onContinue }: { onContinue: () => void }) {
 // ─── Choice View ──────────────────────────────────────────────────────────────
 function ChoiceView({ step, value, onSelect }: { step: ChoiceStep; value: string | undefined; onSelect: (v: string) => void }) {
   return (
-    <div className="quiz-fade-in space-y-5">
-      <h2 className="text-[22px] font-bold leading-tight text-navy">{step.question}</h2>
-      <div className="space-y-2.5">
+    <div className="quiz-fade-in space-y-2">
+      <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)] mb-6">{step.question}</h2>
+      <div>
         {step.options.map((o) => (
           <OptionCard key={o} label={o} selected={value === o} onClick={() => onSelect(o)} />
         ))}
@@ -612,12 +680,12 @@ function ChoiceView({ step, value, onSelect }: { step: ChoiceStep; value: string
 function SliderView({ step, onConfirm }: { step: SliderStep; onConfirm: (v: number) => void }) {
   const [v, setV] = useState(5);
   return (
-    <div className="quiz-fade-in space-y-8">
-      <h2 className="text-[22px] font-bold leading-tight text-navy">{step.question}</h2>
+    <div className="quiz-fade-in space-y-9">
+      <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">{step.question}</h2>
       <StressSlider minLabel={step.minLabel} maxLabel={step.maxLabel} initial={5} onChange={setV} />
       <button
         onClick={() => onConfirm(v)}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white"
+        className="flex w-full items-center justify-center gap-2 bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)]"
       >
         Continue <ArrowRight className="h-4 w-4" />
       </button>
@@ -633,9 +701,9 @@ function SimpleInput({
   onChange: (v: string) => void; onSubmit: () => void; cta: string; type?: string;
 }) {
   return (
-    <div className="quiz-fade-in space-y-5">
-      <h2 className="text-[22px] font-bold leading-tight text-navy">{title}</h2>
-      {sub && <p className="text-sm text-muted-foreground">{sub}</p>}
+    <div className="quiz-fade-in space-y-6">
+      <h2 className="font-[family-name:var(--font-serif-display)] text-[24px] font-extrabold leading-tight text-[color:var(--navy)]">{title}</h2>
+      {sub && <p className="font-[family-name:var(--font-serif-body)] text-[14px] text-[color:var(--paper-muted)]">{sub}</p>}
       <input
         type={type}
         value={value}
@@ -644,11 +712,11 @@ function SimpleInput({
         onKeyDown={(e) => { if (e.key === "Enter") onSubmit(); }}
         placeholder={placeholder}
         aria-label={title}
-        className="h-14 w-full rounded-2xl border-2 border-border bg-card px-5 text-base font-medium outline-none transition-colors focus:border-violet"
+        className="h-12 w-full border-b border-[color:var(--paper-ink)]/20 bg-transparent px-1 text-[15px] font-[family-name:var(--font-serif-body)] italic outline-none transition-colors focus:border-[color:var(--violet)]"
       />
       <button
         onClick={onSubmit}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-navy py-4 text-sm font-bold text-white"
+        className="flex w-full items-center justify-center gap-2 bg-[color:var(--navy)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-bold text-[color:var(--gold)]"
       >
         {cta} <ArrowRight className="h-4 w-4" />
       </button>

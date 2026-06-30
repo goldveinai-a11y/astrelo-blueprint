@@ -5,6 +5,7 @@ import { XRayScroller } from "./widgets/XRayScroller";
 import { DynamicTimeline } from "./widgets/DynamicTimeline";
 import { PricingTiers, type Tier } from "./widgets/PricingTiers";
 import { lifePath, karmicDebt, zodiacSign, type DOB } from "@/lib/quiz/numerology";
+import type { GeoPoint } from "@/lib/quiz/types";
 import { useServerFn } from "@tanstack/react-start";
 import { createPaymentIntent } from "@/lib/checkout.functions";
 import { toast } from "sonner";
@@ -49,12 +50,18 @@ export function Paywall({
   dob,
   email,
   partnerName,
+  birthTime,
+  birthTimeUnknown,
+  birthPlace,
   quizToken,
 }: {
   name: string;
   dob: DOB;
   email: string;
   partnerName?: string;
+  birthTime?: string;
+  birthTimeUnknown?: boolean;
+  birthPlace?: GeoPoint;
   quizToken: string | null;
 }) {
   const lp = lifePath(dob);
@@ -112,6 +119,9 @@ export function Paywall({
           fullName: name,
           dob: { day: dob.day, month: dob.month, year: dob.year },
           partnerName: partnerName || null,
+          birthTime: birthTime || null,
+          birthTimeUnknown: birthTimeUnknown ?? false,
+          birthPlace: birthPlace || null,
           quizToken,
 
         },
