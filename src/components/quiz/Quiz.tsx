@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Sparkles, Star, Check, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateQuizToken } from "@/lib/checkout.functions";
 import { ProgressBar } from "./widgets/ProgressBar";
 import { OptionCard } from "./widgets/OptionCard";
 import { StressSlider } from "./widgets/StressSlider";
