@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, Camera, Check, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { expressionNumber, lifePath, zodiacSign, type DOB } from "@/lib/quiz/numerology";
 import chapterIllustration from "@/assets/quiz/chapter-illustration-1.jpg";
@@ -126,7 +126,7 @@ function birthDate(dob: DOB) {
   });
 }
 
-function Page({ children, tone = "paper" }: { children: React.ReactNode; tone?: "paper" | "cover" | "dark" }) {
+function Page({ children, tone = "paper" }: { children: ReactNode; tone?: "paper" | "cover" | "dark" }) {
   const className = tone === "paper"
     ? "bg-[color:var(--paper)] text-[color:var(--paper-ink)]"
     : tone === "cover"
