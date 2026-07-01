@@ -16,6 +16,11 @@ export type Database = {
     Tables: {
       orders: {
         Row: {
+          birth_lat: number | null
+          birth_lng: number | null
+          birth_place_name: string | null
+          birth_time: string | null
+          birth_time_unknown: boolean
           created_at: string
           dob_day: number
           dob_month: number
@@ -31,6 +36,11 @@ export type Database = {
           token: string
         }
         Insert: {
+          birth_lat?: number | null
+          birth_lng?: number | null
+          birth_place_name?: string | null
+          birth_time?: string | null
+          birth_time_unknown?: boolean
           created_at?: string
           dob_day: number
           dob_month: number
@@ -46,6 +56,11 @@ export type Database = {
           token: string
         }
         Update: {
+          birth_lat?: number | null
+          birth_lng?: number | null
+          birth_place_name?: string | null
+          birth_time?: string | null
+          birth_time_unknown?: boolean
           created_at?: string
           dob_day?: number
           dob_month?: number
