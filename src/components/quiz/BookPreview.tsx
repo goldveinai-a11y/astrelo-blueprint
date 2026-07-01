@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import { ArrowRight, BookOpen, Camera, Check, Lock, Sparkles } from "lucide-react";
 import { expressionNumber, lifePath, zodiacSign, type DOB } from "@/lib/quiz/numerology";
 import chapterIllustration from "@/assets/quiz/chapter-illustration-1.jpg";
@@ -100,87 +101,36 @@ const CHAPTERS = [
 ] as const;
 
 function useBookPager(total: number) {
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(390);
+  const [viewportRef, emblaApi] = useEmblaCarousel({
+    axis: "x",
+    dragFree: false,
+    loop: false,
+    skipSnaps: false,
+    watchDrag: (_api, event) => {
+      const target = event.target;
+      return !(target instanceof Element && target.closest("[data-no-drag],button,input,select,textarea,a"));
+    },
+  });
   const [index, setIndex] = useState(0);
-  const [dragX, setDragX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const indexRef = useRef(0);
-  const dragRef = useRef(0);
-  const startX = useRef(0);
-  const startY = useRef(0);
-  const active = useRef(false);
-  const locked = useRef<"x" | "y" | null>(null);
   const lastWheelTurn = useRef(0);
-
-  useEffect(() => {
-    const node = viewportRef.current;
-    if (!node) return;
-    const update = () => setWidth(Math.max(1, node.getBoundingClientRect().width));
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    indexRef.current = index;
-  }, [index]);
 
   const goTo = useCallback((page: number) => {
     const next = Math.max(0, Math.min(total - 1, page));
-    indexRef.current = next;
-    dragRef.current = 0;
-    active.current = false;
-    locked.current = null;
     setIndex(next);
-    setDragX(0);
-    setIsDragging(false);
-  }, [total]);
+    emblaApi?.scrollTo(next);
+  }, [emblaApi, total]);
 
-  const begin = (x: number, y: number) => {
-    active.current = true;
-    locked.current = null;
-    startX.current = x;
-    startY.current = y;
-    dragRef.current = 0;
-    setDragX(0);
-    setIsDragging(true);
-  };
-
-  const move = (x: number, y: number) => {
-    if (!active.current) return "idle" as const;
-    const dx = x - startX.current;
-    const dy = y - startY.current;
-
-    if (!locked.current && Math.max(Math.abs(dx), Math.abs(dy)) > 10) {
-      locked.current = Math.abs(dx) > Math.abs(dy) * 1.18 ? "x" : "y";
-      if (locked.current === "y") {
-        setIsDragging(false);
-        return "y" as const;
-      }
-    }
-
-    if (locked.current !== "x") return locked.current ?? "idle";
-
-    const atStart = indexRef.current === 0 && dx > 0;
-    const atEnd = indexRef.current === total - 1 && dx < 0;
-    const resistance = atStart || atEnd ? 0.22 : 1;
-    const limited = Math.max(-width * 0.42, Math.min(width * 0.42, dx * resistance));
-    dragRef.current = limited;
-    setDragX(limited);
-    return "x" as const;
-  };
-
-  const end = () => {
-    if (!active.current) return;
-    active.current = false;
-    const delta = dragRef.current;
-    const shouldTurn = locked.current === "x" && Math.abs(delta) >= Math.min(92, Math.max(58, width * 0.18));
-    const next = shouldTurn ? indexRef.current + (delta < 0 ? 1 : -1) : indexRef.current;
-    locked.current = null;
-    goTo(next);
-  };
+  useEffect(() => {
+    if (!emblaApi) return;
+    const sync = () => setIndex(emblaApi.selectedScrollSnap());
+    sync();
+    emblaApi.on("select", sync);
+    emblaApi.on("reInit", sync);
+    return () => {
+      emblaApi.off("select", sync);
+      emblaApi.off("reInit", sync);
+    };
+  }, [emblaApi]);
 
   const wheel = (deltaX: number, deltaY: number) => {
     if (Math.abs(deltaX) < 18 || Math.abs(deltaX) < Math.abs(deltaY) * 1.15) return false;
@@ -189,11 +139,12 @@ function useBookPager(total: number) {
     if (now - lastWheelTurn.current < 620) return true;
 
     lastWheelTurn.current = now;
-    goTo(indexRef.current + (deltaX > 0 ? 1 : -1));
+    if (deltaX > 0) emblaApi?.scrollNext();
+    else emblaApi?.scrollPrev();
     return true;
   };
 
-  return { index, dragX, width, isDragging, viewportRef, goTo, begin, move, end, wheel };
+  return { index, viewportRef, goTo, wheel };
 }
 
 function birthDate(dob: DOB) {
@@ -212,7 +163,7 @@ function Page({ children, tone = "paper" }: { children: ReactNode; tone?: "paper
       : "bg-[linear-gradient(160deg,#3a1b64_0%,#8e3ec6_52%,#ed6b9a_100%)] text-white";
 
   return (
-    <section className={`relative h-full w-full shrink-0 overflow-hidden ${className}`}>
+    <section className={`relative h-full min-w-0 flex-[0_0_100%] overflow-hidden ${className}`}>
       {children}
     </section>
   );
@@ -507,39 +458,8 @@ export function BookPreview({ name, dob, paragraph, onContinue }: Props) {
         onWheel={(event) => {
           if (pager.wheel(event.deltaX, event.deltaY)) event.preventDefault();
         }}
-        onPointerDown={(event) => {
-          if (event.pointerType === "touch") return;
-          if ((event.target as HTMLElement).closest("[data-no-drag],button,input,select,textarea,a")) return;
-          event.currentTarget.setPointerCapture?.(event.pointerId);
-          pager.begin(event.clientX, event.clientY);
-        }}
-        onPointerMove={(event) => {
-          const lock = pager.move(event.clientX, event.clientY);
-          if (lock === "x") event.preventDefault();
-        }}
-        onPointerUp={(event) => {
-          event.currentTarget.releasePointerCapture?.(event.pointerId);
-          pager.end();
-        }}
-        onPointerCancel={pager.end}
-        onTouchStart={(event) => {
-          if ((event.target as HTMLElement).closest("[data-no-drag],button,input,select,textarea,a")) return;
-          const touch = event.touches[0];
-          if (touch) pager.begin(touch.clientX, touch.clientY);
-        }}
-        onTouchMove={(event) => {
-          const touch = event.touches[0];
-          if (!touch) return;
-          const lock = pager.move(touch.clientX, touch.clientY);
-          if (lock === "x") event.preventDefault();
-        }}
-        onTouchEnd={pager.end}
-        onTouchCancel={pager.end}
       >
-        <div
-          className={`flex h-full will-change-transform ${pager.isDragging ? "" : "transition-transform duration-300 ease-out"}`}
-          style={{ transform: `translate3d(${(-pager.index * pager.width) + pager.dragX}px,0,0)` }}
-        >
+        <div className="flex h-full touch-pan-y">
           {pages}
         </div>
 
