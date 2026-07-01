@@ -11,7 +11,7 @@ import { PlaceSearch } from "./widgets/PlaceSearch";
 import { AILoader, type TeaserPayload } from "./widgets/AILoader";
 import { MilestoneScreen } from "./MilestoneScreen";
 import { Paywall } from "./Paywall";
-import { BarnumReveal } from "./BarnumReveal";
+import { BookPreview } from "./BookPreview";
 import { track } from "@/lib/analytics";
 import { lifePath, zodiacSign } from "@/lib/quiz/numerology";
 import type { Answers, GeoPoint } from "@/lib/quiz/types";
@@ -409,9 +409,10 @@ export function Quiz() {
           />
         )}
 
-        {step.kind === "barnum_reveal" && (
-          <BarnumReveal
+        {step.kind === "barnum_reveal" && answers.dob && (
+          <BookPreview
             name={answers.name || "you"}
+            dob={answers.dob}
             paragraph={teaserParagraph}
             onContinue={next}
           />
