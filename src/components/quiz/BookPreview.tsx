@@ -111,6 +111,7 @@ function useBookPager(total: number) {
   const startY = useRef(0);
   const active = useRef(false);
   const locked = useRef<"x" | "y" | null>(null);
+  const lastWheelTurn = useRef(0);
 
   useEffect(() => {
     const node = viewportRef.current;
@@ -181,7 +182,18 @@ function useBookPager(total: number) {
     goTo(next);
   };
 
-  return { index, dragX, width, isDragging, viewportRef, goTo, begin, move, end };
+  const wheel = (deltaX: number, deltaY: number) => {
+    if (Math.abs(deltaX) < 18 || Math.abs(deltaX) < Math.abs(deltaY) * 1.15) return false;
+
+    const now = Date.now();
+    if (now - lastWheelTurn.current < 620) return true;
+
+    lastWheelTurn.current = now;
+    goTo(indexRef.current + (deltaX > 0 ? 1 : -1));
+    return true;
+  };
+
+  return { index, dragX, width, isDragging, viewportRef, goTo, begin, move, end, wheel };
 }
 
 function birthDate(dob: DOB) {
@@ -200,7 +212,7 @@ function Page({ children, tone = "paper" }: { children: ReactNode; tone?: "paper
       : "bg-[linear-gradient(160deg,#3a1b64_0%,#8e3ec6_52%,#ed6b9a_100%)] text-white";
 
   return (
-    <section className={`relative h-full min-w-full overflow-hidden ${className}`}>
+    <section className={`relative h-full w-full shrink-0 overflow-hidden ${className}`}>
       {children}
     </section>
   );
@@ -492,7 +504,11 @@ export function BookPreview({ name, dob, paragraph, onContinue }: Props) {
       <div
         ref={pager.viewportRef}
         className="relative h-full overflow-hidden overscroll-contain touch-pan-y"
+        onWheel={(event) => {
+          if (pager.wheel(event.deltaX, event.deltaY)) event.preventDefault();
+        }}
         onPointerDown={(event) => {
+          if (event.pointerType === "touch") return;
           if ((event.target as HTMLElement).closest("[data-no-drag],button,input,select,textarea,a")) return;
           event.currentTarget.setPointerCapture?.(event.pointerId);
           pager.begin(event.clientX, event.clientY);
@@ -506,6 +522,19 @@ export function BookPreview({ name, dob, paragraph, onContinue }: Props) {
           pager.end();
         }}
         onPointerCancel={pager.end}
+        onTouchStart={(event) => {
+          if ((event.target as HTMLElement).closest("[data-no-drag],button,input,select,textarea,a")) return;
+          const touch = event.touches[0];
+          if (touch) pager.begin(touch.clientX, touch.clientY);
+        }}
+        onTouchMove={(event) => {
+          const touch = event.touches[0];
+          if (!touch) return;
+          const lock = pager.move(touch.clientX, touch.clientY);
+          if (lock === "x") event.preventDefault();
+        }}
+        onTouchEnd={pager.end}
+        onTouchCancel={pager.end}
       >
         <div
           className={`flex h-full will-change-transform ${pager.isDragging ? "" : "transition-transform duration-300 ease-out"}`}
