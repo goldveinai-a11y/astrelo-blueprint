@@ -217,12 +217,12 @@ function Cover({ name, dob, lp }: { name: string; dob: DOB; lp: number }) {
             <span className="-translate-y-1 font-[family-name:var(--font-serif-display)] text-[72px] font-black leading-none text-[#f5d58a] drop-shadow-[0_0_18px_rgba(245,213,138,.35)]">{lp}</span>
           </div>
         </div>
-        <p className="mt-4 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.24em] text-white/68">Life Path</p>
+        <p className="mt-4 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.24em] text-white/[0.68]">Life Path</p>
         <h2 className="mt-4 max-w-[15ch] font-[family-name:var(--font-display)] text-[22px] font-black uppercase leading-[1.05] text-white">{(name || "Your Name").toUpperCase()}</h2>
-        <p className="mt-2 font-[family-name:var(--font-sans)] text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/62">{birthDate(dob)}</p>
+        <p className="mt-2 font-[family-name:var(--font-sans)] text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/[0.62]">{birthDate(dob)}</p>
         <div className="mt-7 h-px w-20 bg-white/18" />
-        <p className="mt-5 font-[family-name:var(--font-serif-body)] text-[12.5px] text-white/66">Your Numerology Blueprint · Free Sample</p>
-        <p className="absolute inset-x-0 bottom-7 font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.18em] text-white/54">← swipe to read →</p>
+        <p className="mt-5 font-[family-name:var(--font-serif-body)] text-[12.5px] text-white/[0.66]">Your Numerology Blueprint · Free Sample</p>
+        <p className="absolute inset-x-0 bottom-7 font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.18em] text-white/[0.54]">← swipe to read →</p>
       </div>
     </Page>
   );
@@ -263,7 +263,7 @@ function IllustrationPage({ lp }: { lp: number }) {
         <p className="mx-auto max-w-[24ch] font-[family-name:var(--font-display)] text-[22px] font-black leading-[1.1] text-[#f5d58a] drop-shadow-[0_2px_16px_rgba(0,0,0,.35)]">
           “Numbers are the oldest language pattern ever spoke into being.”
         </p>
-        <p className="mx-auto mt-4 max-w-[31ch] font-[family-name:var(--font-serif-body)] text-[13.5px] leading-[1.55] text-white/78">
+        <p className="mx-auto mt-4 max-w-[31ch] font-[family-name:var(--font-serif-body)] text-[13.5px] leading-[1.55] text-white/[0.78]">
           Life Path {lp} is not a label. It is the route your choices keep finding.
         </p>
       </div>
@@ -287,7 +287,7 @@ function EssencePage({ lp }: { lp: number }) {
           <p className="mt-7 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#8c43c7]">Your strengths</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {strengths.map((item) => (
-              <span key={item} className="rounded-full border border-[#8c43c7]/30 bg-[#8c43c7]/7 px-3.5 py-2 font-[family-name:var(--font-sans)] text-[12px] font-bold text-[#2b2246]">{item}</span>
+              <span key={item} className="rounded-full border border-[#8c43c7]/30 bg-[#8c43c7]/[0.07] px-3.5 py-2 font-[family-name:var(--font-sans)] text-[12px] font-bold text-[#2b2246]">{item}</span>
             ))}
           </div>
 
@@ -303,9 +303,9 @@ function EssencePage({ lp }: { lp: number }) {
             <p className="font-[family-name:var(--font-serif-body)] text-[15px] italic leading-[1.55] text-[#30264f]">{LP_MOVE[lp] ?? LP_MOVE[1]}</p>
           </div>
           <div className="mt-7 flex items-center justify-center gap-3">
-            <span className="h-px w-12 bg-[#8c43c7]/22" />
+            <span className="h-px w-12 bg-[#8c43c7]/[0.22]" />
             <span className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.16em] text-[#2b2246]">End of free sample</span>
-            <span className="h-px w-12 bg-[#8c43c7]/22" />
+            <span className="h-px w-12 bg-[#8c43c7]/[0.22]" />
           </div>
         </article>
       </div>
@@ -387,14 +387,14 @@ function ScanResult({ name }: { name: string }) {
         </div>
         <p className="mt-7 font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f5d58a]">Palm captured</p>
         <h2 className="mt-3 max-w-[14ch] font-[family-name:var(--font-display)] text-[27px] font-black leading-[1.04] text-white">{name || "Your"} scan is ready to decode</h2>
-        <p className="mt-5 max-w-[31ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.6] text-white/73">
+        <p className="mt-5 max-w-[31ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.6] text-white/[0.73]">
           Three dominant lines were identified: heart, life, and head. The complete interpretation is added inside Chapter 11.
         </p>
         <div className="mt-8 grid w-full grid-cols-3 gap-2">
           {[["Heart", "Deep"], ["Life", "Long"], ["Head", "Split"]].map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-white/12 bg-white/[0.07] px-2 py-4">
+            <div key={label} className="rounded-2xl border border-white/[0.12] bg-white/[0.07] px-2 py-4">
               <p className="font-[family-name:var(--font-display)] text-[17px] font-black text-[#f5d58a]">{value}</p>
-              <p className="mt-1 font-[family-name:var(--font-sans)] text-[8px] font-bold uppercase tracking-[0.14em] text-white/52">{label}</p>
+              <p className="mt-1 font-[family-name:var(--font-sans)] text-[8px] font-bold uppercase tracking-[0.14em] text-white/[0.52]">{label}</p>
             </div>
           ))}
         </div>
@@ -413,7 +413,7 @@ function ChapterList({ name }: { name: string }) {
           <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[13px] italic leading-snug text-[#6b6170]">A complete book built from your birth date, name, palm layer, and current timing cycle.</p>
           <ol className="mt-5 space-y-2.5">
             {CHAPTERS.map(([n, title, sub], i) => (
-              <li key={n} className="grid grid-cols-[34px_minmax(0,1fr)] gap-2 border-b border-[#2b2246]/8 pb-2.5 last:border-b-0">
+              <li key={n} className="grid grid-cols-[34px_minmax(0,1fr)] gap-2 border-b border-[#2b2246]/[0.08] pb-2.5 last:border-b-0">
                 <span className="font-[family-name:var(--font-display)] text-[12px] font-black text-[#c79138]">{n}</span>
                 <div className="min-w-0">
                   <p className="font-[family-name:var(--font-display)] text-[13.5px] font-black leading-tight text-[#2b2246]">
@@ -438,7 +438,7 @@ function FinalPage({ name, onContinue }: { name: string; onContinue: () => void 
         <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.28em] text-[#f5d58a]">Ready</p>
         <h2 className="mt-4 max-w-[13ch] font-[family-name:var(--font-display)] text-[31px] font-black leading-[1.02] text-white">Unlock {name ? `${name}'s` : "your"} full Blueprint</h2>
         <p className="mt-5 max-w-[29ch] font-[family-name:var(--font-serif-body)] text-[14.5px] leading-[1.58] text-white/74">15 chapters, palm reading result, dated windows, compatibility map, and one closing letter written only for you.</p>
-        <div className="mt-8 rounded-full border border-[#f5d58a]/36 px-5 py-2 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#f5d58a]">One-time access · $19</div>
+        <div className="mt-8 rounded-full border border-[#f5d58a]/[0.36] px-5 py-2 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#f5d58a]">One-time access · $19</div>
         <button type="button" onClick={onContinue} className="mt-7 flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#f5d58a] px-6 py-4 font-[family-name:var(--font-sans)] text-[12.5px] font-black uppercase tracking-[0.16em] text-[#2b2246] shadow-[0_14px_34px_rgba(245,213,138,.34)]">
           Unlock my book <ArrowRight className="h-4 w-4" />
         </button>
