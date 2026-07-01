@@ -349,7 +349,7 @@ function PalmScan({ onCaptured }: { onCaptured: () => void }) {
       <div className="relative flex h-full flex-col items-center px-7 pb-8 pt-9 text-center">
         <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f5d58a]">Chapter 11 · Palm Layer</p>
         <h2 className="mt-auto max-w-[15ch] font-[family-name:var(--font-display)] text-[25px] font-black leading-[1.06] text-white">Center your palm in the frame</h2>
-        <p className="mt-3 max-w-[30ch] font-[family-name:var(--font-serif-body)] text-[13.5px] leading-[1.55] text-white/72">
+        <p className="mt-3 max-w-[30ch] font-[family-name:var(--font-serif-body)] text-[13.5px] leading-[1.55] text-white/[0.72]">
           Takes about 10 seconds. Your scan is added to the full Blueprint — no skip screen, no extra step.
         </p>
         <div className="mt-6 w-full" data-no-drag>
@@ -437,7 +437,7 @@ function FinalPage({ name, onContinue }: { name: string; onContinue: () => void 
       <div className="relative flex h-full flex-col items-center justify-center px-8 py-10 text-center">
         <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.28em] text-[#f5d58a]">Ready</p>
         <h2 className="mt-4 max-w-[13ch] font-[family-name:var(--font-display)] text-[31px] font-black leading-[1.02] text-white">Unlock {name ? `${name}'s` : "your"} full Blueprint</h2>
-        <p className="mt-5 max-w-[29ch] font-[family-name:var(--font-serif-body)] text-[14.5px] leading-[1.58] text-white/74">15 chapters, palm reading result, dated windows, compatibility map, and one closing letter written only for you.</p>
+        <p className="mt-5 max-w-[29ch] font-[family-name:var(--font-serif-body)] text-[14.5px] leading-[1.58] text-white/[0.74]">15 chapters, palm reading result, dated windows, compatibility map, and one closing letter written only for you.</p>
         <div className="mt-8 rounded-full border border-[#f5d58a]/[0.36] px-5 py-2 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#f5d58a]">One-time access · $19</div>
         <button type="button" onClick={onContinue} className="mt-7 flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#f5d58a] px-6 py-4 font-[family-name:var(--font-sans)] text-[12.5px] font-black uppercase tracking-[0.16em] text-[#2b2246] shadow-[0_14px_34px_rgba(245,213,138,.34)]">
           Unlock my book <ArrowRight className="h-4 w-4" />
