@@ -201,7 +201,7 @@ function BookHeader({ left, right }: { left: string; right?: string }) {
   return (
     <div className="flex h-[52px] shrink-0 items-center justify-between px-6 pt-4 font-[family-name:var(--font-sans)] text-[9.5px] font-black uppercase tracking-[0.16em] text-[#786f7d]">
       <span className="min-w-0 truncate">{left}</span>
-      {right && <span className="rounded-full bg-[#8c43c7]/10 px-2.5 py-1 text-[8px] text-[#8c43c7]">{right}</span>}
+      {right && <span className="rounded-full bg-[#8c43c7]/[0.1] px-2.5 py-1 text-[8px] text-[#8c43c7]">{right}</span>}
     </div>
   );
 }
@@ -212,15 +212,15 @@ function Cover({ name, dob, lp }: { name: string; dob: DOB; lp: number }) {
       <div className="pointer-events-none absolute inset-0 opacity-55 [background-image:radial-gradient(circle_at_22%_18%,rgba(255,232,170,.26),transparent_30%),radial-gradient(circle_at_78%_76%,rgba(255,255,255,.16),transparent_28%)]" />
       <div className="relative flex h-full flex-col items-center justify-center px-8 pb-12 pt-10 text-center">
         <p className="font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.44em] text-[#f5d58a]">Astrelo</p>
-        <div className="mt-7 grid h-[118px] w-[118px] place-items-center rounded-full border border-[#f5d58a]/60 shadow-[0_0_58px_rgba(245,213,138,.22)]">
-          <div className="grid h-[94px] w-[94px] place-items-center rounded-full border border-[#f5d58a]/30">
+        <div className="mt-7 grid h-[118px] w-[118px] place-items-center rounded-full border border-[#f5d58a]/[0.6] shadow-[0_0_58px_rgba(245,213,138,.22)]">
+          <div className="grid h-[94px] w-[94px] place-items-center rounded-full border border-[#f5d58a]/[0.3]">
             <span className="-translate-y-1 font-[family-name:var(--font-serif-display)] text-[72px] font-black leading-none text-[#f5d58a] drop-shadow-[0_0_18px_rgba(245,213,138,.35)]">{lp}</span>
           </div>
         </div>
         <p className="mt-4 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.24em] text-white/[0.68]">Life Path</p>
         <h2 className="mt-4 max-w-[15ch] font-[family-name:var(--font-display)] text-[22px] font-black uppercase leading-[1.05] text-white">{(name || "Your Name").toUpperCase()}</h2>
         <p className="mt-2 font-[family-name:var(--font-sans)] text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/[0.62]">{birthDate(dob)}</p>
-        <div className="mt-7 h-px w-20 bg-white/18" />
+        <div className="mt-7 h-px w-20 bg-white/[0.18]" />
         <p className="mt-5 font-[family-name:var(--font-serif-body)] text-[12.5px] text-white/[0.66]">Your Numerology Blueprint · Free Sample</p>
         <p className="absolute inset-x-0 bottom-7 font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.18em] text-white/[0.54]">← swipe to read →</p>
       </div>
@@ -239,12 +239,12 @@ function NarrativePage({ name, dob, lp, ex, paragraph }: { name: string; dob: DO
           <p className="mt-5 font-[family-name:var(--font-serif-body)] text-[15.2px] leading-[1.68] text-[#2c2633] [text-wrap:pretty] first-letter:float-left first-letter:mr-2 first-letter:font-[family-name:var(--font-serif-display)] first-letter:text-[54px] first-letter:font-black first-letter:leading-[0.9] first-letter:text-[#c79138]">
             {paragraph}
           </p>
-          <div className="mt-6 rounded-[18px] border-l-[3px] border-[#e0b453] bg-[#e0b453]/10 px-4 py-4">
+          <div className="mt-6 rounded-[18px] border-l-[3px] border-[#e0b453] bg-[#e0b453]/[0.1] px-4 py-4">
             <p className="font-[family-name:var(--font-display)] text-[17px] font-black italic leading-[1.35] text-[#34275a]">
               Expression {ex} changes how this Life Path is seen — the same number can feel warm, distant, magnetic, precise, or impossible to ignore.
             </p>
           </div>
-          <footer className="mt-6 flex items-center justify-between border-t border-[#2b2246]/10 pt-3 font-[family-name:var(--font-sans)] text-[8.5px] font-bold uppercase tracking-[0.16em] text-[#867c8c]">
+          <footer className="mt-6 flex items-center justify-between border-t border-[#2b2246]/[0.1] pt-3 font-[family-name:var(--font-sans)] text-[8.5px] font-bold uppercase tracking-[0.16em] text-[#867c8c]">
             <span>{birthDate(dob)}</span>
             <span>Astrelo</span>
           </footer>
@@ -287,7 +287,7 @@ function EssencePage({ lp }: { lp: number }) {
           <p className="mt-7 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#8c43c7]">Your strengths</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {strengths.map((item) => (
-              <span key={item} className="rounded-full border border-[#8c43c7]/30 bg-[#8c43c7]/[0.07] px-3.5 py-2 font-[family-name:var(--font-sans)] text-[12px] font-bold text-[#2b2246]">{item}</span>
+              <span key={item} className="rounded-full border border-[#8c43c7]/[0.3] bg-[#8c43c7]/[0.07] px-3.5 py-2 font-[family-name:var(--font-sans)] text-[12px] font-bold text-[#2b2246]">{item}</span>
             ))}
           </div>
 
@@ -299,7 +299,7 @@ function EssencePage({ lp }: { lp: number }) {
           </ul>
 
           <p className="mt-7 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#8c43c7]">Your move</p>
-          <div className="mt-3 rounded-r-[16px] border-l-[3px] border-[#d8a842] bg-[#d8a842]/10 px-4 py-4">
+          <div className="mt-3 rounded-r-[16px] border-l-[3px] border-[#d8a842] bg-[#d8a842]/[0.1] px-4 py-4">
             <p className="font-[family-name:var(--font-serif-body)] text-[15px] italic leading-[1.55] text-[#30264f]">{LP_MOVE[lp] ?? LP_MOVE[1]}</p>
           </div>
           <div className="mt-7 flex items-center justify-center gap-3">
@@ -317,7 +317,7 @@ function PalmIntro({ onNext }: { onNext: () => void }) {
   return (
     <Page>
       <div className="flex h-full flex-col items-center justify-center px-8 py-10 text-center">
-        <div className="grid h-20 w-20 place-items-center rounded-full bg-[#8c43c7]/10 text-[#8c43c7]">
+        <div className="grid h-20 w-20 place-items-center rounded-full bg-[#8c43c7]/[0.1] text-[#8c43c7]">
           <Sparkles className="h-9 w-9" strokeWidth={1.5} />
         </div>
         <h2 className="mt-6 max-w-[12ch] font-[family-name:var(--font-display)] text-[28px] font-black leading-[1.04] text-[#2b2246]">One last layer</h2>
@@ -382,7 +382,7 @@ function ScanResult({ name }: { name: string }) {
     <Page tone="cover">
       <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:radial-gradient(circle_at_25%_18%,rgba(245,213,138,.24),transparent_28%),radial-gradient(circle_at_75%_78%,rgba(255,255,255,.14),transparent_30%)]" />
       <div className="relative flex h-full flex-col items-center justify-center px-7 py-10 text-center">
-        <div className="grid h-28 w-28 place-items-center rounded-full border border-[#f5d58a]/55 shadow-[0_0_54px_rgba(245,213,138,.2)]">
+        <div className="grid h-28 w-28 place-items-center rounded-full border border-[#f5d58a]/[0.55] shadow-[0_0_54px_rgba(245,213,138,.2)]">
           <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f5d58a] text-[#2b2246] shadow-[0_0_34px_rgba(245,213,138,.38)]"><Check className="h-7 w-7" strokeWidth={3} /></div>
         </div>
         <p className="mt-7 font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f5d58a]">Palm captured</p>
@@ -496,7 +496,7 @@ export function BookPreview({ name, dob, paragraph, onContinue }: Props) {
 
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center gap-1.5">
           {pages.map((_, i) => (
-            <span key={i} className={`h-1.5 rounded-full transition-all ${i === pager.index ? "w-6 bg-[#8c43c7]" : "w-1.5 bg-[#2b2246]/20"}`} />
+            <span key={i} className={`h-1.5 rounded-full transition-all ${i === pager.index ? "w-6 bg-[#8c43c7]" : "w-1.5 bg-[#2b2246]/[0.2]"}`} />
           ))}
         </div>
       </div>
