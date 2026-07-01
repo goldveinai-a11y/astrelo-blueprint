@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import { ArrowRight, BookOpen, Camera, Check, Lock, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Camera, Check, Lock, Sparkles } from "lucide-react";
 import { expressionNumber, lifePath, zodiacSign, type DOB } from "@/lib/quiz/numerology";
 import chapterIllustration from "@/assets/quiz/chapter-illustration-1.jpg";
 import palmIllustration from "@/assets/quiz/palm-illustration.jpg";
@@ -144,7 +144,7 @@ function useBookPager(total: number) {
     return true;
   };
 
-  return { index, viewportRef, goTo, wheel };
+  return { index, viewportRef, goTo, wheel, canPrev: index > 0, canNext: index < total - 1 };
 }
 
 function birthDate(dob: DOB) {
@@ -461,6 +461,27 @@ export function BookPreview({ name, dob, paragraph, onContinue }: Props) {
       >
         <div className="flex h-full touch-pan-y">
           {pages}
+        </div>
+
+        <div className="absolute inset-x-0 bottom-5 z-20 flex items-center justify-between px-4" data-no-drag>
+          <button
+            type="button"
+            onClick={() => pager.goTo(pager.index - 1)}
+            disabled={!pager.canPrev}
+            aria-label="Previous page"
+            className="grid h-10 w-10 place-items-center rounded-full border border-[#2b1748]/[0.12] bg-[#fbf7ee]/[0.78] text-[#2b1748] shadow-[0_8px_24px_rgba(43,23,72,.12)] backdrop-blur-md transition-opacity disabled:opacity-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => pager.goTo(pager.index + 1)}
+            disabled={!pager.canNext}
+            aria-label="Next page"
+            className="grid h-10 w-10 place-items-center rounded-full border border-[#2b1748]/[0.12] bg-[#fbf7ee]/[0.78] text-[#2b1748] shadow-[0_8px_24px_rgba(43,23,72,.12)] backdrop-blur-md transition-opacity disabled:opacity-0"
+          >
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center gap-1.5">
