@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Camera, Check, Sparkles } from "lucide-react";
-import { lifePath, expressionNumber, zodiacSign, type DOB } from "@/lib/quiz/numerology";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { ArrowRight, BookOpen, Camera, Check, Lock, Sparkles } from "lucide-react";
+import { expressionNumber, lifePath, zodiacSign, type DOB } from "@/lib/quiz/numerology";
 import chapterIllustration from "@/assets/quiz/chapter-illustration-1.jpg";
 import palmIllustration from "@/assets/quiz/palm-illustration.jpg";
 
@@ -11,302 +11,333 @@ type Props = {
   onContinue: () => void;
 };
 
-// ─── Copy ────────────────────────────────────────────────────────────────
 const LP_TITLE: Record<number, string> = {
-  1: "The Pioneer", 2: "The Diplomat", 3: "The Voice", 4: "The Builder",
-  5: "The Free Spirit", 6: "The Nurturer", 7: "The Seeker", 8: "The Architect",
-  9: "The Humanitarian", 11: "The Illuminator", 22: "The Master Builder", 33: "The Teacher",
+  1: "The Pioneer",
+  2: "The Diplomat",
+  3: "The Voice",
+  4: "The Builder",
+  5: "The Free Spirit",
+  6: "The Nurturer",
+  7: "The Seeker",
+  8: "The Architect",
+  9: "The Humanitarian",
+  11: "The Illuminator",
+  22: "The Master Builder",
+  33: "The Teacher",
 };
 
-const LP_ESSENCE: Record<number, string> = {
-  1: "You came in to lead, not to follow. Your blueprint is wired for original thought, independent action, and breaking ground where others still hesitate.",
-  2: "You came in to hold what others cannot. Your gift is the quiet architecture of trust — you make it safe for people to become themselves.",
-  3: "You came in with a voice. Not to fill silence, but to name what everyone else feels and cannot say out loud.",
-  4: "You came in to build what lasts. Every foundation you set right becomes something a whole line of people will stand on.",
-  5: "You came in to move. Freedom is not your escape — it is the direction your soul was pointed in before you were born.",
-  6: "You came in to care — but on your terms. The ones you love are watching how you carry yourself, more than what you say.",
-  7: "You came in to know. The quiet is not where your life pauses. It is where your real work actually begins.",
-  8: "You came in with weight to move. Ambition is not a flaw in your design — it is the instrument you were handed.",
-  9: "You came in for the whole room, not just yourself. Your life was never only about you — and part of you has always known.",
-  11: "You came in to see. You catch the pattern before others admit it exists — and that early sight is both your gift and your burden.",
-  22: "You came in to build something that outlives you. The scale of your calling is not accidental — and neither is the fear that comes with it.",
-  33: "You came in to teach without speaking. Your presence recalibrates rooms; your example moves people your words never could.",
-};
-
-const LP_STRENGTHS: Record<number, string[]> = {
-  1: ["Initiative", "Self-reliance", "Decisiveness", "Innovation"],
-  2: ["Diplomacy", "Empathy", "Patience", "Partnership"],
-  3: ["Expression", "Charisma", "Creativity", "Optimism"],
-  4: ["Discipline", "Loyalty", "Precision", "Endurance"],
-  5: ["Adaptability", "Curiosity", "Magnetism", "Courage"],
-  6: ["Devotion", "Responsibility", "Warmth", "Craft"],
-  7: ["Insight", "Depth", "Analysis", "Discernment"],
-  8: ["Authority", "Vision", "Ambition", "Resilience"],
-  9: ["Compassion", "Wisdom", "Idealism", "Generosity"],
-  11: ["Intuition", "Vision", "Inspiration", "Sensitivity"],
-  22: ["Mastery", "Scale", "Discipline", "Legacy"],
-  33: ["Presence", "Teaching", "Compassion", "Influence"],
-};
-
-const LP_SHADOWS: Record<number, string[]> = {
-  1: ["Stubbornness", "Isolation", "Impatience with weakness"],
-  2: ["Over-giving", "Avoiding conflict", "Losing yourself in others"],
-  3: ["Scattered focus", "Performing instead of feeling", "Fear of being unseen"],
-  4: ["Rigidity", "Overwork", "Postponing joy"],
-  5: ["Restlessness", "Escapism", "Fear of commitment"],
-  6: ["Martyrdom", "Control disguised as care", "Resentment"],
-  7: ["Withdrawal", "Cynicism", "Emotional distance"],
-  8: ["Workaholism", "Control", "Confusing worth with output"],
-  9: ["Old grief", "Saving people who didn't ask", "Emotional exhaustion"],
-  11: ["Anxiety", "Self-doubt", "Sensory overwhelm"],
-  22: ["Fear of your own scale", "Perfectionism", "Isolation at the top"],
-  33: ["Over-responsibility", "Losing yourself in service", "Ignoring your own needs"],
+const LP_OPENING: Record<number, string> = {
+  1: "You were not built to wait for a room to agree with you. Your number moves first, then proves itself through momentum.",
+  2: "You notice the emotional weather before anyone admits the room has changed. That sensitivity is not weakness — it is your instrument.",
+  3: "Your life becomes blocked when your voice gets edited down to what feels acceptable. The number 3 needs expression to stay alive.",
+  4: "You carry the rare ability to make chaos usable. But when structure becomes armor, the same gift starts closing around you.",
+  5: "Your soul studies life through motion. Repetition drains you only when it belongs to a life that was never shaped for you.",
+  6: "People lean toward you because something in your field feels safe. The lesson is learning where devotion ends and self-erasure begins.",
+  7: "You have always needed more depth than the surface could offer. Your solitude is not distance — it is where your knowing sharpens.",
+  8: "Power, money, and impact are not side themes in your life. They are the curriculum your number keeps placing in front of you.",
+  9: "You carry rooms inside you. The challenge is knowing which grief belongs to your heart — and which grief you inherited by standing too close.",
+  11: "You sense the signal before the proof arrives. The hard part is trusting the first flash instead of negotiating it away.",
+  22: "Your life keeps asking you to build at a scale that can scare even you. The pressure is not random; it is proportionate to the design.",
+  33: "Your influence often works before your words do. People change around you, then call it timing. Your chart calls it presence.",
 };
 
 const LP_MOVE: Record<number, string> = {
-  1: "When you doubt yourself you stall — and stalling is the one thing your number cannot tolerate. Move first, refine later.",
-  2: "Stop apologizing for the space you take up. Your presence is not the problem — your absence is what breaks the room.",
-  3: "Say the thing. Not eventually. Now. Your voice loses power every day you keep it small.",
-  4: "You do not need permission to rest. The structure you built will hold without you standing on it.",
-  5: "Choose one door. Freedom you never walk through is just a photograph of freedom.",
-  6: "The person you keep saving didn't ask. Save the version of you they've been watching disappear.",
-  7: "Come out of the tower. What you've learned is only real once someone else can use it.",
-  8: "Loosen the grip. The money follows you — it doesn't need to be chased into submission.",
-  9: "Put down what wasn't yours. Some of the grief you carry belongs to someone who is already gone.",
-  11: "Trust the first signal, not the fifth. Your intuition is not asking you to be certain — only to move.",
-  22: "You are not too much. The scale of what you're building is exactly the scale you were built for.",
-  33: "You do not have to earn your worth by serving. Your presence alone is already the lesson.",
+  1: "Move first, refine later — but choose the move that belongs to you, not the one that simply proves you are strong.",
+  2: "Name what you need before you become useful to everyone except yourself.",
+  3: "Say the precise thing you keep softening for other people’s comfort.",
+  4: "Loosen one rule that used to protect you but now only keeps you small.",
+  5: "Commit to one door long enough for freedom to become real.",
+  6: "Return the responsibility that was never yours to carry.",
+  7: "Bring one private truth back into daylight.",
+  8: "Use power without apologizing for having it.",
+  9: "Put down the ending you keep reliving.",
+  11: "Trust the first signal, not the fifth explanation.",
+  22: "Treat your scale as evidence, not as a problem.",
+  33: "Let your presence teach without making your life a sacrifice.",
 };
 
-const LP_CLIFF: Record<number, string> = {
-  1: "But there is a specific reason you keep starting alone. Chapter 2 names it.",
-  2: "There is a pattern in how people take from you — and it has a number. Chapter 2 names it.",
-  3: "The one thing you keep avoiding saying — Chapter 2 says it for you.",
-  4: "You are building on top of something that was never resolved. Chapter 2 opens it.",
-  5: "Your restlessness is not random. Chapter 2 shows the exact year it started.",
-  6: "You keep saving someone who was never yours to save. Chapter 2 explains who — and why.",
-  7: "The question you refuse to ask yourself — Chapter 2 asks it out loud.",
-  8: "Your relationship with money is inherited. Chapter 2 traces where it came from.",
-  9: "You are carrying something that does not belong to you. Chapter 2 names its owner.",
-  11: "Your intuition has been pointing at one person for months. Chapter 2 names them.",
-  22: "The scale you're built for scares you. Chapter 2 shows why — and when it lifts.",
-  33: "Your influence is already reshaping someone. Chapter 2 shows who — and how.",
+const STRENGTHS: Record<number, string[]> = {
+  1: ["Initiative", "Self-trust", "Original action", "Leadership"],
+  2: ["Emotional reading", "Patience", "Diplomacy", "Devotion"],
+  3: ["Expression", "Charm", "Creativity", "Momentum"],
+  4: ["Discipline", "Loyalty", "Structure", "Endurance"],
+  5: ["Adaptability", "Magnetism", "Freedom", "Range"],
+  6: ["Care", "Beauty", "Responsibility", "Warmth"],
+  7: ["Depth", "Analysis", "Intuition", "Solitude"],
+  8: ["Power", "Strategy", "Money sense", "Impact"],
+  9: ["Wisdom", "Compassion", "Closure", "Vision"],
+  11: ["Intuition", "Signal", "Presence", "Inspiration"],
+  22: ["Scale", "Building", "Systems", "Legacy"],
+  33: ["Teaching", "Healing", "Influence", "Devotion"],
 };
 
-// TOC — personalized, no locks, no "coming soon" clutter
-type TOCItem = { n: string; title: (name: string) => string; sub: string };
-const TOC: TOCItem[] = [
-  { n: "01", title: () => "Life Path", sub: "The pattern already running under everything you do" },
-  { n: "02", title: (n) => `Expression — how ${n || "you"} arrive`, sub: "The version of you the world is built to see" },
-  { n: "03", title: () => "Soul Urge", sub: "What you keep choosing — and why" },
-  { n: "04", title: () => "Personality", sub: "The first read people take on you" },
-  { n: "05", title: (n) => `Birth Day gift for ${n || "you"}`, sub: "The single talent you were born already holding" },
-  { n: "06", title: () => "Karmic Debt", sub: "The bill your line kept postponing — until you" },
-  { n: "07", title: () => "Karmic Lessons", sub: "The lessons your name keeps returning to" },
-  { n: "08", title: (n) => `Maturity — who ${n || "you"} become after 35`, sub: "The second version of your life, dated" },
-  { n: "09", title: () => "Pinnacles", sub: "The four seasons of your life — with exact years" },
-  { n: "10", title: () => "Challenges", sub: "The specific friction each season is built to teach" },
-  { n: "11", title: () => "Palm Reading", sub: "The layer your numbers cannot reach" },
-  { n: "12", title: (n) => `${n || "Your"} Personal Year`, sub: "What this exact year is really about for you" },
-  { n: "13", title: () => "90-Day Windows", sub: "The dates when action lands twice as hard" },
-  { n: "14", title: () => "Compatibility Map", sub: "The numbers that clash with you — and the one that fits" },
-  { n: "15", title: (n) => `A letter — to ${n || "you"}`, sub: "One page, written only for the person you are becoming" },
-];
+const SHADOWS: Record<number, string[]> = {
+  1: ["Feeling alone even when people admire you", "Mistaking urgency for certainty", "Pushing away help before it can reach you"],
+  2: ["Absorbing everyone else’s mood", "Waiting for permission to want more", "Calling silence peace when it is actually fear"],
+  3: ["Performing lightness when you need honesty", "Starting often, finishing rarely", "Hiding pain behind charm"],
+  4: ["Turning structure into a cage", "Carrying more than your share", "Confusing control with safety"],
+  5: ["Leaving before the breakthrough", "Avoiding the one commitment that would free you", "Mistaking stimulation for direction"],
+  6: ["Over-giving", "Rescuing people from their own lessons", "Making love conditional on usefulness"],
+  7: ["Withdrawing when you need to be seen", "Overthinking what your body already knows", "Testing people instead of trusting them"],
+  8: ["Softening your ambition to stay liked", "Over-identifying with results", "Treating vulnerability like a liability"],
+  9: ["Carrying endings too long", "Saving people who did not ask", "Confusing compassion with self-abandonment"],
+  11: ["Doubting the signal after it arrives", "Taking on nervous energy that is not yours", "Waiting for proof until the moment passes"],
+  22: ["Shrinking the vision so it feels safer", "Pressure that turns into delay", "Building for everyone except yourself"],
+  33: ["Healing others while postponing your own life", "Mistaking sacrifice for purpose", "Letting guilt choose the next step"],
+};
 
-// ─── Scroll-snap hook ────────────────────────────────────────────────────
-function useScrollSnap(total: number) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [idx, setIdx] = useState(0);
+const CHAPTERS = [
+  ["Soul Urge Number", "What your heart actually wants"],
+  ["Personality Number", "The first impression you give"],
+  ["Expression Number", "How your name changes the way life reads you"],
+  ["Birth Day Gift", "The talent you did not have to earn"],
+  ["Karmic Debt & Lessons", "The inherited loop your life is trying to close"],
+  ["2026 Forecast", "Month-by-month timing for decisions"],
+  ["Pinnacle Cycles", "Your four life seasons, dated by year"],
+  ["Love Compatibility Map", "The numbers that pull you closer — or drain you"],
+  ["Palm Reading", "Heart, head, life line interpretation"],
+  ["90-Day Windows", "When love, money, and clarity open faster"],
+] as const;
 
-  const goTo = useCallback((n: number) => {
-    const el = ref.current;
-    if (!el) return;
-    const target = Math.max(0, Math.min(total - 1, n));
-    el.scrollTo({ left: target * el.clientWidth, behavior: "smooth" });
-  }, [total]);
-
-  const next = useCallback(() => goTo(idx + 1), [goTo, idx]);
-  const prev = useCallback(() => goTo(idx - 1), [goTo, idx]);
+function useBookPager(total: number) {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(390);
+  const [index, setIndex] = useState(0);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const indexRef = useRef(0);
+  const dragRef = useRef(0);
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const active = useRef(false);
+  const locked = useRef<"x" | "y" | null>(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    let raf = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const i = Math.round(el.scrollLeft / el.clientWidth);
-        setIdx(i);
-      });
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => { el.removeEventListener("scroll", onScroll); cancelAnimationFrame(raf); };
+    const node = viewportRef.current;
+    if (!node) return;
+    const update = () => setWidth(Math.max(1, node.getBoundingClientRect().width));
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => observer.disconnect();
   }, []);
 
-  return { ref, idx, goTo, next, prev };
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
+
+  const goTo = useCallback((page: number) => {
+    const next = Math.max(0, Math.min(total - 1, page));
+    indexRef.current = next;
+    dragRef.current = 0;
+    active.current = false;
+    locked.current = null;
+    setIndex(next);
+    setDragX(0);
+    setIsDragging(false);
+  }, [total]);
+
+  const begin = (x: number, y: number) => {
+    active.current = true;
+    locked.current = null;
+    startX.current = x;
+    startY.current = y;
+    dragRef.current = 0;
+    setDragX(0);
+    setIsDragging(true);
+  };
+
+  const move = (x: number, y: number) => {
+    if (!active.current) return "idle" as const;
+    const dx = x - startX.current;
+    const dy = y - startY.current;
+
+    if (!locked.current && Math.max(Math.abs(dx), Math.abs(dy)) > 10) {
+      locked.current = Math.abs(dx) > Math.abs(dy) * 1.18 ? "x" : "y";
+      if (locked.current === "y") {
+        setIsDragging(false);
+        return "y" as const;
+      }
+    }
+
+    if (locked.current !== "x") return locked.current ?? "idle";
+
+    const atStart = indexRef.current === 0 && dx > 0;
+    const atEnd = indexRef.current === total - 1 && dx < 0;
+    const resistance = atStart || atEnd ? 0.22 : 1;
+    const limited = Math.max(-width * 0.42, Math.min(width * 0.42, dx * resistance));
+    dragRef.current = limited;
+    setDragX(limited);
+    return "x" as const;
+  };
+
+  const end = () => {
+    if (!active.current) return;
+    active.current = false;
+    const delta = dragRef.current;
+    const shouldTurn = locked.current === "x" && Math.abs(delta) >= Math.min(92, Math.max(58, width * 0.18));
+    const next = shouldTurn ? indexRef.current + (delta < 0 ? 1 : -1) : indexRef.current;
+    locked.current = null;
+    goTo(next);
+  };
+
+  return { index, dragX, width, isDragging, viewportRef, goTo, begin, move, end };
 }
 
-// ─── Page shell ──────────────────────────────────────────────────────────
-function Page({ children, bg = "paper" }: { children: React.ReactNode; bg?: "paper" | "navy" | "cosmic" }) {
-  const bgClass =
-    bg === "navy" ? "bg-[#0f1730] text-white"
-    : bg === "cosmic" ? "bg-[radial-gradient(ellipse_at_center,#2a1f5a_0%,#0f1730_75%)] text-white"
-    : "bg-[color:var(--paper)] text-[color:var(--paper-ink)]";
+function birthDate(dob: DOB) {
+  return new Date(dob.year, dob.month - 1, dob.day).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function Page({ children, tone = "paper" }: { children: ReactNode; tone?: "paper" | "cover" | "image" }) {
+  const className = tone === "paper"
+    ? "bg-[#fbf7ee] text-[#211b29]"
+    : tone === "cover"
+      ? "bg-[linear-gradient(150deg,#2b1748_0%,#7b35b6_44%,#e65392_100%)] text-white"
+      : "bg-[linear-gradient(160deg,#3a1b64_0%,#8e3ec6_52%,#ed6b9a_100%)] text-white";
+
   return (
-    <div className={`h-full w-full shrink-0 snap-start snap-always overflow-y-auto ${bgClass}`} style={{ scrollSnapAlign: "start" }}>
-      <div className="flex min-h-full flex-col">{children}</div>
+    <section className={`relative h-full min-w-full overflow-hidden ${className}`}>
+      {children}
+    </section>
+  );
+}
+
+function BookHeader({ left, right }: { left: string; right?: string }) {
+  return (
+    <div className="flex h-[54px] shrink-0 items-center justify-between px-6 pt-4 font-[family-name:var(--font-sans)] text-[9.5px] font-black uppercase tracking-[0.16em] text-[#756878]">
+      <span className="min-w-0 truncate">{left}</span>
+      {right && <span className="rounded-full bg-[#8f3fc7]/[0.1] px-2.5 py-1 text-[8px] text-[#8f3fc7]">{right}</span>}
     </div>
   );
 }
 
-function Chrome({ label, pill }: { label: string; pill?: string }) {
-  return (
-    <div className="flex items-center justify-between px-6 pt-5 pb-2 font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.16em] text-[color:var(--paper-muted)]">
-      <span>{label}</span>
-      {pill && <span className="rounded-full bg-[color:var(--violet)]/10 px-2.5 py-1 text-[9px] text-[color:var(--violet)]">{pill}</span>}
-    </div>
-  );
-}
-
-// ─── Screens ─────────────────────────────────────────────────────────────
 function Cover({ name, dob, lp }: { name: string; dob: DOB; lp: number }) {
-  const dobStr = new Date(dob.year, dob.month - 1, dob.day)
-    .toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-  const displayName = (name || "you").toUpperCase();
   return (
-    <Page bg="cosmic">
-      <div className="flex flex-1 flex-col items-center justify-between px-8 py-12 text-center">
-        <p className="font-[family-name:var(--font-sans)] text-[11px] font-bold uppercase tracking-[0.35em] text-[color:var(--gold)]/85">
-          Astrelo
-        </p>
-
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative flex h-44 w-44 items-center justify-center">
-            <div className="absolute inset-0 rounded-full border border-[color:var(--gold)]/60" />
-            <div className="absolute inset-3 rounded-full border border-[color:var(--gold)]/20" />
-            <span
-              className="font-[family-name:var(--font-serif-display)] font-black leading-none text-[color:var(--gold)]"
-              style={{
-                fontSize: 96,
-                textShadow: "0 0 32px oklch(0.82 0.16 85 / 0.55)",
-                // Optical centering — serif numerals sit low on the baseline
-                transform: "translateY(-4px)",
-              }}
-            >
-              {lp}
-            </span>
+    <Page tone="cover">
+      <div className="absolute inset-0 opacity-70 [background-image:radial-gradient(circle_at_18%_10%,rgba(255,222,157,.34),transparent_27%),radial-gradient(circle_at_78%_84%,rgba(255,255,255,.22),transparent_30%)]" />
+      <div className="absolute left-1/2 top-[12%] h-[310px] w-[310px] -translate-x-1/2 rounded-full border border-[#f7d682]/[0.2]" />
+      <div className="absolute left-1/2 top-[16%] h-[238px] w-[238px] -translate-x-1/2 rounded-full border border-[#f7d682]/[0.16]" />
+      <div className="relative flex h-full flex-col items-center px-8 pb-8 pt-9 text-center">
+        <p className="font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.46em] text-[#f7d682]">Astrelo</p>
+        <div className="mt-[9vh] grid h-[132px] w-[132px] place-items-center rounded-full border border-[#f7d682]/[0.62] bg-white/[0.05] shadow-[0_0_64px_rgba(247,214,130,.28)]">
+          <div className="grid h-[106px] w-[106px] place-items-center rounded-full border border-[#f7d682]/[0.28] bg-[#2b1748]/[0.12]">
+            <span className="-translate-y-1 font-[family-name:var(--font-display)] text-[74px] font-black leading-none text-[#f7d682] drop-shadow-[0_0_22px_rgba(247,214,130,.42)]">{lp}</span>
           </div>
-          <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.28em] text-white/60">
-            Life Path Number
-          </p>
         </div>
-
-        <div className="flex flex-col items-center gap-1">
-          <p className="font-[family-name:var(--font-serif-display)] text-[22px] font-extrabold tracking-wide text-white">
-            {displayName}
-          </p>
-          <p className="font-[family-name:var(--font-sans)] text-[10.5px] uppercase tracking-[0.18em] text-white/55">
-            {dobStr}
-          </p>
-          <div className="mt-6 h-px w-16 bg-white/15" />
-          <p className="mt-3 font-[family-name:var(--font-serif-body)] text-[11.5px] italic text-white/55">
-            Your Numerology Blueprint · Free Sample
-          </p>
-        </div>
-
-        <p className="font-[family-name:var(--font-sans)] text-[10.5px] uppercase tracking-[0.22em] text-white/40">
-          swipe to read →
-        </p>
+        <p className="mt-4 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.24em] text-white/[0.68]">Life Path</p>
+        <h2 className="mt-6 max-w-[15ch] font-[family-name:var(--font-display)] text-[24px] font-black uppercase leading-[1.05] text-white">{(name || "Your Name").toUpperCase()}</h2>
+        <p className="mt-2 font-[family-name:var(--font-sans)] text-[10.5px] font-semibold uppercase tracking-[0.14em] text-white/[0.66]">{birthDate(dob)}</p>
+        <div className="mt-7 h-px w-24 bg-white/[0.18]" />
+        <p className="mt-5 max-w-[28ch] font-[family-name:var(--font-serif-body)] text-[13px] leading-[1.45] text-white/[0.7]">Your Numerology Blueprint · Free ebook sample</p>
+        <p className="mt-auto font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.18em] text-white/[0.58]">← swipe to read →</p>
       </div>
     </Page>
   );
 }
 
-function NarrativePage({ name, lp, paragraph }: { name: string; lp: number; paragraph: string }) {
-  const title = LP_TITLE[lp] ?? "Your Blueprint";
+function NarrativePage({ name, dob, lp, ex, paragraph }: { name: string; dob: DOB; lp: number; ex: number; paragraph: string }) {
   return (
     <Page>
-      <Chrome label={`Chapter 1 · Life Path ${lp}`} pill="Sample" />
-      <div className="flex-1 px-7 pb-8 pt-2">
-        <h1 className="mb-4 font-[family-name:var(--font-serif-display)] text-[30px] font-black leading-[1.05] text-[color:var(--navy)]">
-          {title}
-        </h1>
-        <p className="mb-5 font-[family-name:var(--font-sans)] text-[11px] font-semibold uppercase tracking-[0.15em] text-[color:var(--violet)]">
-          For {name || "you"}
-        </p>
-        <p className="font-[family-name:var(--font-serif-body)] text-[15.5px] leading-[1.72] text-[color:var(--paper-ink)]">
-          {paragraph}
-        </p>
+      <div className="flex h-full flex-col">
+        <BookHeader left={`Chapter 1 · Life Path ${lp}`} right="Sample" />
+        <article className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-1 [-webkit-overflow-scrolling:touch]">
+          <h1 className="font-[family-name:var(--font-display)] text-[29px] font-black leading-[1.05] text-[#2b1748]">{LP_TITLE[lp] ?? "Your Blueprint"}</h1>
+          <p className="mt-2 font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.18em] text-[#943fc7]">Written for {(name || "you").toString()}</p>
+          <p className="mt-5 font-[family-name:var(--font-serif-body)] text-[15.6px] leading-[1.66] text-[#2d2534] [text-wrap:pretty] first-letter:float-left first-letter:mr-2 first-letter:font-[family-name:var(--font-display)] first-letter:text-[58px] first-letter:font-black first-letter:leading-[0.86] first-letter:text-[#ca8f2f]">
+            {paragraph}
+          </p>
+          <div className="mt-6 rounded-r-[18px] border-l-[3px] border-[#d9a53d] bg-[#d9a53d]/[0.1] px-4 py-4">
+            <p className="font-[family-name:var(--font-display)] text-[16.5px] font-black italic leading-[1.35] text-[#37245d]">
+              Expression {ex} changes how this Life Path is seen — the same number can feel warm, magnetic, precise, or impossible to ignore.
+            </p>
+          </div>
+          <footer className="mt-6 flex items-center justify-between border-t border-[#2b1748]/[0.1] pt-3 font-[family-name:var(--font-sans)] text-[8.5px] font-bold uppercase tracking-[0.16em] text-[#827687]">
+            <span>{birthDate(dob)}</span>
+            <span>Astrelo</span>
+          </footer>
+        </article>
       </div>
     </Page>
   );
 }
 
-function IllustrationPage({ lp }: { lp: number }) {
+function FullBleedIllustration({ lp }: { lp: number }) {
   return (
-    <Page bg="navy">
-      <div className="relative flex-1 overflow-hidden">
-        <img
-          src={chapterIllustration}
-          alt=""
-          loading="lazy"
-          width={960}
-          height={1280}
-          className="absolute inset-0 h-full w-full object-cover"
-          draggable={false}
-        />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-b from-transparent via-[#0f1730]/60 to-[#0f1730]" />
-        <div className="absolute inset-x-0 bottom-0 px-8 pb-10">
-          <p className="mx-auto max-w-[26ch] text-center font-[family-name:var(--font-serif-display)] text-[18px] italic leading-[1.35] text-[color:var(--gold)]">
-            "Numbers are the oldest language pattern ever spoke into being — and yours is Life Path {lp}."
-          </p>
-        </div>
+    <Page tone="image">
+      <img src={chapterIllustration} alt="Golden numerology wheel" className="absolute inset-0 h-full w-full object-cover" draggable={false} loading="lazy" width={1080} height={1920} />
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(40,18,72,.03)_0%,rgba(40,18,72,.04)_45%,rgba(48,20,82,.84)_100%)]" />
+      <div className="relative flex h-full flex-col justify-end px-8 pb-16 text-center">
+        <p className="mx-auto max-w-[24ch] font-[family-name:var(--font-display)] text-[25px] font-black leading-[1.06] text-[#f7d682] drop-shadow-[0_2px_16px_rgba(0,0,0,.38)]">
+          “Numbers are the oldest language pattern ever spoke into being.”
+        </p>
+        <p className="mx-auto mt-4 max-w-[31ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.55] text-white/[0.82]">
+          Life Path {lp} is not a label. It is the route your choices keep finding.
+        </p>
       </div>
     </Page>
   );
 }
 
 function EssencePage({ lp }: { lp: number }) {
-  const essence = LP_ESSENCE[lp] ?? LP_ESSENCE[1];
-  const strengths = LP_STRENGTHS[lp] ?? LP_STRENGTHS[1];
-  const shadows = LP_SHADOWS[lp] ?? LP_SHADOWS[1];
-  const move = LP_MOVE[lp] ?? LP_MOVE[1];
+  const strengths = STRENGTHS[lp] ?? STRENGTHS[1];
+  const shadows = SHADOWS[lp] ?? SHADOWS[1];
+
   return (
     <Page>
-      <Chrome label={`Chapter 1 · Life Path ${lp}`} pill="Sample" />
-      <div className="flex-1 px-7 pb-8 pt-2">
-        <p className="mb-6 font-[family-name:var(--font-serif-display)] text-[19px] italic leading-[1.4] text-[color:var(--navy-soft)]">
-          <span className="text-[color:var(--gold)]">“</span>{essence}<span className="text-[color:var(--gold)]">”</span>
-        </p>
+      <div className="flex h-full flex-col">
+        <BookHeader left="Chapter 1 · Essence" right="Sample" />
+        <article className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-2 [-webkit-overflow-scrolling:touch]">
+          <p className="font-[family-name:var(--font-display)] text-[21px] font-black italic leading-[1.36] text-[#39245d] before:text-[#d9a53d] before:content-['“'] after:text-[#d9a53d] after:content-['”']">
+            {LP_OPENING[lp] ?? LP_OPENING[1]}
+          </p>
 
-        <p className="mb-2 font-[family-name:var(--font-sans)] text-[10.5px] font-bold uppercase tracking-[0.16em] text-[color:var(--violet)]">
-          Your strengths
-        </p>
-        <div className="mb-6 flex flex-wrap gap-2">
-          {strengths.map((s) => (
-            <span key={s} className="rounded-full border border-[color:var(--violet)]/35 bg-[color:var(--violet)]/6 px-3 py-1.5 text-[12px] font-semibold text-[color:var(--navy)]">
-              {s}
-            </span>
-          ))}
-        </div>
+          <p className="mt-7 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#943fc7]">Your strengths</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {strengths.map((item) => (
+              <span key={item} className="rounded-full border border-[#943fc7]/[0.3] bg-[#943fc7]/[0.07] px-3.5 py-2 font-[family-name:var(--font-sans)] text-[12px] font-bold text-[#2b1748]">{item}</span>
+            ))}
+          </div>
 
-        <p className="mb-2 font-[family-name:var(--font-sans)] text-[10.5px] font-bold uppercase tracking-[0.16em] text-[color:var(--violet)]">
-          Where it gets in your way
-        </p>
-        <ul className="mb-6 space-y-1.5">
-          {shadows.map((s) => (
-            <li key={s} className="relative pl-4 font-[family-name:var(--font-serif-body)] text-[15px] leading-relaxed text-[color:var(--paper-ink)]">
-              <span className="absolute left-0 top-0 text-[color:var(--paper-muted)]">–</span>{s}
-            </li>
-          ))}
-        </ul>
+          <p className="mt-7 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#943fc7]">Where it gets in your way</p>
+          <ul className="mt-2 space-y-2.5">
+            {shadows.map((item) => (
+              <li key={item} className="relative pl-5 font-[family-name:var(--font-serif-body)] text-[14.7px] leading-[1.46] text-[#403746] before:absolute before:left-0 before:top-0 before:text-[#b8872d] before:content-['–']">{item}</li>
+            ))}
+          </ul>
 
-        <p className="mb-2 font-[family-name:var(--font-sans)] text-[10.5px] font-bold uppercase tracking-[0.16em] text-[color:var(--violet)]">
-          Your move
-        </p>
-        <div className="rounded-r-lg border-l-[3px] border-[color:var(--gold)] bg-[color:var(--gold)]/8 p-4">
-          <p className="font-[family-name:var(--font-serif-body)] text-[14.5px] italic leading-relaxed text-[color:var(--navy)]">
-            “{move}”
+          <p className="mt-7 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#943fc7]">Your move</p>
+          <div className="mt-3 rounded-r-[16px] border-l-[3px] border-[#d9a53d] bg-[#d9a53d]/[0.1] px-4 py-4">
+            <p className="font-[family-name:var(--font-serif-body)] text-[15px] italic leading-[1.55] text-[#30204d]">{LP_MOVE[lp] ?? LP_MOVE[1]}</p>
+          </div>
+          <div className="mt-7 flex items-center justify-center gap-3">
+            <span className="h-px w-12 bg-[#943fc7]/[0.22]" />
+            <span className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.16em] text-[#2b1748]">End of free sample</span>
+            <span className="h-px w-12 bg-[#943fc7]/[0.22]" />
+          </div>
+        </article>
+      </div>
+    </Page>
+  );
+}
+
+function ChapterArtwork({ lp }: { lp: number }) {
+  return (
+    <Page tone="image">
+      <img src={chapterIllustration} alt="Numerology chapter artwork" className="absolute inset-0 h-full w-full scale-[1.08] object-cover blur-[1px]" draggable={false} loading="lazy" width={1080} height={1920} />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_32%,rgba(255,255,255,.2),transparent_24%),linear-gradient(to_bottom,rgba(138,54,191,.22),rgba(234,88,145,.28),rgba(47,20,82,.94))]" />
+      <div className="relative flex h-full flex-col px-8 pb-14 pt-12 text-center">
+        <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.26em] text-[#f7d682]">What the full book adds</p>
+        <div className="my-auto grid place-items-center">
+          <div className="grid h-36 w-36 place-items-center rounded-full border border-[#f7d682]/[0.42] bg-white/[0.07] shadow-[0_0_44px_rgba(247,214,130,.24)]">
+            <BookOpen className="h-14 w-14 text-[#f7d682]" strokeWidth={1.35} />
+          </div>
+          <h2 className="mt-7 max-w-[13ch] font-[family-name:var(--font-display)] text-[29px] font-black leading-[1.02] text-white">The pattern behind the pattern</h2>
+          <p className="mt-4 max-w-[29ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.55] text-white/[0.76]">
+            Your free page shows Life Path {lp}. The locked chapters connect love, money, timing, and the choices that keep repeating.
           </p>
         </div>
       </div>
@@ -314,131 +345,45 @@ function EssencePage({ lp }: { lp: number }) {
   );
 }
 
-function ChapterCloseHook({ name, lp, ex }: { name: string; lp: number; ex: number }) {
-  const cliff = LP_CLIFF[lp] ?? LP_CLIFF[1];
-  return (
-    <Page>
-      <Chrome label={`Chapter 1 · Life Path ${lp}`} pill="End of sample" />
-      <div className="flex-1 px-7 pb-8 pt-4">
-        {/* Infographic — personal stat card */}
-        <div className="mb-6 rounded-2xl bg-[color:var(--navy)] p-5 text-white">
-          <p className="mb-4 text-center font-[family-name:var(--font-sans)] text-[9.5px] font-bold uppercase tracking-[0.22em] text-[color:var(--gold)]/80">
-            {(name || "You").toString().toUpperCase()} · CORE FRAME
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: "Life Path", value: lp },
-              { label: "Expression", value: ex },
-            ].map((s) => (
-              <div key={s.label} className="rounded-xl bg-white/[0.06] px-3 py-4 text-center">
-                <p className="font-[family-name:var(--font-sans)] text-[9px] font-bold uppercase tracking-[0.2em] text-white/55">
-                  {s.label}
-                </p>
-                <p className="mt-1 font-[family-name:var(--font-serif-display)] text-[38px] font-black leading-none text-[color:var(--gold)]">
-                  {s.value}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-            {[
-              { l: "Chapters ready", v: "15" },
-              { l: "Personal Year", v: (new Date().getFullYear() + lp) % 9 + 1 },
-              { l: "Windows dated", v: "4" },
-            ].map((s) => (
-              <div key={s.l} className="border-t border-white/10 pt-3">
-                <p className="font-[family-name:var(--font-serif-display)] text-[18px] font-black text-[color:var(--gold)]">{s.v}</p>
-                <p className="mt-0.5 font-[family-name:var(--font-sans)] text-[8.5px] uppercase tracking-widest text-white/45">{s.l}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Cliffhanger */}
-        <div className="rounded-2xl border border-[color:var(--gold)]/40 bg-[color:var(--paper-2)]/70 p-5">
-          <p className="mb-2 flex items-center gap-2 font-[family-name:var(--font-sans)] text-[9.5px] font-bold uppercase tracking-[0.22em] text-[color:var(--violet)]">
-            <Sparkles className="h-3.5 w-3.5" /> What Chapter 2 opens
-          </p>
-          <p className="font-[family-name:var(--font-serif-display)] text-[19px] font-bold italic leading-[1.3] text-[color:var(--navy)]">
-            {cliff}
-          </p>
-          <p className="mt-3 font-[family-name:var(--font-serif-body)] text-[13px] italic leading-relaxed text-[color:var(--paper-muted)]">
-            The next 14 chapters are already written for {name || "you"} — waiting behind one page.
-          </p>
-        </div>
-      </div>
-    </Page>
-  );
-}
-
-function PalmScanPage({ onCaptured }: { onCaptured: () => void }) {
+function PalmScan({ onCaptured }: { onCaptured: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [capturing, setCapturing] = useState(false);
+
+  const capture = () => {
+    setCapturing(true);
+    window.setTimeout(onCaptured, 850);
+  };
+
   return (
-    <Page bg="navy">
-      <div className="relative flex-1">
-        <img
-          src={palmIllustration}
-          alt=""
-          loading="lazy"
-          width={960}
-          height={1280}
-          className="absolute inset-0 h-full w-full object-cover opacity-55"
-          draggable={false}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0f1730]/40 via-[#0f1730]/70 to-[#0f1730]" />
-
-        <div className="relative flex min-h-full flex-col items-center justify-between px-7 pb-10 pt-10 text-center">
-          <div>
-            <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.28em] text-[color:var(--gold)]/80">
-              Chapter 11 · Preparation
-            </p>
-            <h2 className="mt-3 font-[family-name:var(--font-serif-display)] text-[26px] font-extrabold leading-[1.1] text-white">
-              One layer your numbers<br />can't reach
-            </h2>
-          </div>
-
-          <div className="mx-auto flex h-48 w-48 items-center justify-center rounded-full border-2 border-dashed border-[color:var(--gold)]/60">
-            <Camera className="h-14 w-14 text-[color:var(--gold)]/80" strokeWidth={1.4} />
-          </div>
-
-          <div className="space-y-4">
-            <p className="mx-auto max-w-[30ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.55] text-white/80">
-              Your numbers show <em>when</em> and <em>how</em> you move. Your palm shows what numbers cannot see — <em>resilience, timing, love lines</em> already written in.
-            </p>
-            <p className="mx-auto max-w-[28ch] font-[family-name:var(--font-sans)] text-[11px] uppercase tracking-[0.18em] text-[color:var(--gold)]/80">
-              Takes 10 seconds · decoded once your book unlocks
-            </p>
-            <div data-no-swipe>
-              <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setCapturing(true);
-                    setTimeout(onCaptured, 700);
-                  }
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => inputRef.current?.click()}
-                disabled={capturing}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[color:var(--gold)] py-4 font-[family-name:var(--font-sans)] text-[13px] font-black uppercase tracking-[0.16em] text-[color:var(--navy)] shadow-[0_10px_28px_oklch(0.82_0.16_85/.35)]"
-              >
-                <Camera className="h-4 w-4" /> {capturing ? "Capturing…" : "Scan my palm now"}
-              </button>
-              <button
-                type="button"
-                onClick={onCaptured}
-                className="mt-3 w-full font-[family-name:var(--font-sans)] text-[11px] uppercase tracking-[0.22em] text-white/45 underline underline-offset-4"
-              >
-                Skip — I'll add it later
-              </button>
-            </div>
+    <Page tone="image">
+      <img src={palmIllustration} alt="Palm reading guide" className="absolute inset-0 h-full w-full object-cover" draggable={false} loading="lazy" width={1080} height={1920} />
+      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(44,21,75,.02)_0%,rgba(44,21,75,.02)_44%,rgba(44,21,75,.72)_74%,rgba(37,17,65,.97)_100%)]" />
+      <div className="relative flex h-full flex-col items-center px-7 pb-8 pt-9 text-center">
+        <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f7d682]">Chapter 11 · Palm Layer</p>
+        <div className="mt-auto w-full">
+          <h2 className="mx-auto max-w-[16ch] font-[family-name:var(--font-display)] text-[26px] font-black leading-[1.06] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,.3)]">Center your palm in the frame</h2>
+          <p className="mx-auto mt-3 max-w-[30ch] font-[family-name:var(--font-serif-body)] text-[13.5px] leading-[1.55] text-white/[0.76]">
+            Takes about 10 seconds. Your palm layer is added to the full Blueprint.
+          </p>
+          <div className="mt-6 w-full" data-no-drag>
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(event) => {
+                if (event.target.files?.[0]) capture();
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              disabled={capturing}
+              className="flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#f7d682] px-6 py-4 font-[family-name:var(--font-sans)] text-[12.5px] font-black uppercase tracking-[0.15em] text-[#2b1748] shadow-[0_14px_34px_rgba(247,214,130,.32)] disabled:opacity-70"
+            >
+              <Camera className="h-4 w-4" /> {capturing ? "Reading palm…" : "Capture palm"}
+            </button>
           </div>
         </div>
       </div>
@@ -446,34 +391,24 @@ function PalmScanPage({ onCaptured }: { onCaptured: () => void }) {
   );
 }
 
-function ScanResultPage({ name }: { name: string }) {
+function ScanResult({ name }: { name: string }) {
   return (
-    <Page bg="cosmic">
-      <div className="flex flex-1 flex-col items-center justify-center gap-8 px-8 py-14 text-center">
-        <div className="relative flex h-32 w-32 items-center justify-center rounded-full border border-[color:var(--gold)]/70">
-          <div className="absolute inset-3 rounded-full border border-[color:var(--gold)]/25" />
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--gold)] text-[color:var(--navy)] shadow-[0_0_30px_oklch(0.82_0.16_85/.55)]">
-            <Check className="h-7 w-7" strokeWidth={3} />
-          </div>
+    <Page tone="cover">
+      <div className="absolute inset-0 opacity-60 [background-image:radial-gradient(circle_at_23%_15%,rgba(247,214,130,.28),transparent_28%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,.2),transparent_30%)]" />
+      <div className="relative flex h-full flex-col items-center justify-center px-7 py-10 text-center">
+        <div className="grid h-28 w-28 place-items-center rounded-full border border-[#f7d682]/[0.55] shadow-[0_0_54px_rgba(247,214,130,.22)]">
+          <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f7d682] text-[#2b1748] shadow-[0_0_34px_rgba(247,214,130,.38)]"><Check className="h-7 w-7" strokeWidth={3} /></div>
         </div>
-
-        <div>
-          <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.28em] text-[color:var(--gold)]/80">
-            Palm captured
-          </p>
-          <h2 className="mt-3 font-[family-name:var(--font-serif-display)] text-[28px] font-extrabold leading-tight text-white">
-            {name || "Your"} scan is queued
-          </h2>
-          <p className="mx-auto mt-4 max-w-[30ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.6] text-white/70">
-            Three dominant lines identified — heart, life, and head — plus a rare secondary marker on your Mount of Jupiter. Full decoding is written when your book unlocks.
-          </p>
-        </div>
-
-        <div className="grid w-full max-w-[280px] grid-cols-3 gap-2 text-center">
-          {[{l:"Heart",v:"Deep"},{l:"Life",v:"Long"},{l:"Head",v:"Split"}].map((s)=>(
-            <div key={s.l} className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-              <p className="font-[family-name:var(--font-serif-display)] text-[15px] font-bold text-[color:var(--gold)]">{s.v}</p>
-              <p className="mt-0.5 font-[family-name:var(--font-sans)] text-[9px] uppercase tracking-widest text-white/55">{s.l}</p>
+        <p className="mt-7 font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f7d682]">Palm layer ready</p>
+        <h2 className="mt-3 max-w-[14ch] font-[family-name:var(--font-display)] text-[28px] font-black leading-[1.04] text-white">{name || "Your"} scan is ready to decode</h2>
+        <p className="mt-5 max-w-[31ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.6] text-white/[0.76]">
+          Heart, life, and head lines were identified. The complete interpretation is placed inside Chapter 11.
+        </p>
+        <div className="mt-8 grid w-full grid-cols-3 gap-2">
+          {[["Heart", "Deep"], ["Life", "Long"], ["Head", "Split"]].map(([label, value]) => (
+            <div key={label} className="rounded-2xl border border-white/[0.14] bg-white/[0.08] px-2 py-4">
+              <p className="font-[family-name:var(--font-display)] text-[17px] font-black text-[#f7d682]">{value}</p>
+              <p className="mt-1 font-[family-name:var(--font-sans)] text-[8px] font-bold uppercase tracking-[0.14em] text-white/[0.56]">{label}</p>
             </div>
           ))}
         </div>
@@ -482,105 +417,106 @@ function ScanResultPage({ name }: { name: string }) {
   );
 }
 
-function TOCPage({ name }: { name: string }) {
+function ChapterList({ name }: { name: string }) {
   return (
     <Page>
-      <Chrome label={`${name || "Your"} Numerology Blueprint`} pill="15 chapters" />
-      <div className="flex-1 px-6 pb-8 pt-2">
-        <h2 className="mb-1 font-[family-name:var(--font-serif-display)] text-[26px] font-black leading-tight text-[color:var(--navy)]">
-          What's inside {name ? `${name}'s` : "your"} book
-        </h2>
-        <p className="mb-5 font-[family-name:var(--font-serif-body)] text-[13px] italic text-[color:var(--paper-muted)]">
-          Written from your exact birth data · each chapter names you by name
-        </p>
-        <ol className="space-y-2.5">
-          {TOC.map((c) => (
-            <li key={c.n} className="flex items-start gap-3 border-b border-[color:var(--paper-ink)]/10 pb-2.5 last:border-b-0">
-              <span className="mt-0.5 w-7 shrink-0 font-[family-name:var(--font-serif-display)] text-[13px] font-bold text-[color:var(--gold)]">
-                {c.n}
-              </span>
-              <div className="flex-1">
-                <p className="font-[family-name:var(--font-serif-display)] text-[14.5px] font-bold leading-tight text-[color:var(--navy)]">
-                  {c.title(name)}
-                </p>
-                <p className="mt-0.5 font-[family-name:var(--font-serif-body)] text-[12.5px] italic leading-snug text-[color:var(--paper-muted)]">
-                  {c.sub}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+      <div className="flex h-full flex-col">
+        <BookHeader left="Your Numerology Blueprint" right="Locked" />
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-8 pt-1 [-webkit-overflow-scrolling:touch]">
+          <h2 className="font-[family-name:var(--font-display)] text-[26px] font-black leading-[1.05] text-[#2b1748]">What waits inside{name ? `, ${name}` : ""}</h2>
+          <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[13px] italic leading-snug text-[#6b6170]">A complete ebook built from your birth date, name, palm layer, and current timing cycle.</p>
+          <div className="mt-5 font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.17em] text-[#8b7f8e]">Numerology · ready now</div>
+          <ol className="mt-2 space-y-0">
+            {CHAPTERS.map(([title, sub], i) => (
+              <li key={title} className="flex items-start gap-3 border-b border-[#2b1748]/[0.08] py-2.5 last:border-b-0">
+                <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#39245d]/[0.45]" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-[family-name:var(--font-display)] text-[13px] font-black leading-tight text-[#39245d]">
+                    {i === 2 && name ? `${title} — how ${name} arrives` : title}
+                  </p>
+                  <p className="mt-0.5 font-[family-name:var(--font-serif-body)] text-[11px] italic leading-tight text-[#766d7b]">{sub}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </Page>
   );
 }
 
-// ─── Root component ─────────────────────────────────────────────────────
+function FinalPage({ name, onContinue }: { name: string; onContinue: () => void }) {
+  return (
+    <Page tone="cover">
+      <div className="absolute inset-0 opacity-65 [background-image:radial-gradient(circle_at_50%_18%,rgba(247,214,130,.3),transparent_32%),radial-gradient(circle_at_28%_82%,rgba(255,255,255,.16),transparent_28%)]" />
+      <div className="relative flex h-full flex-col items-center justify-center px-8 py-10 text-center">
+        <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.28em] text-[#f7d682]">Ready</p>
+        <Sparkles className="mt-8 h-10 w-10 text-[#f7d682]" strokeWidth={1.4} />
+        <h2 className="mt-5 max-w-[13ch] font-[family-name:var(--font-display)] text-[32px] font-black leading-[1.02] text-white">Unlock {name ? `${name}'s` : "your"} full Blueprint</h2>
+        <p className="mt-5 max-w-[29ch] font-[family-name:var(--font-serif-body)] text-[14.5px] leading-[1.58] text-white/[0.76]">15 chapters, palm reading result, dated windows, compatibility map, and one closing letter written only for you.</p>
+        <div className="mt-8 rounded-full border border-[#f7d682]/[0.38] px-5 py-2 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#f7d682]">One-time access · $19</div>
+        <button type="button" onClick={onContinue} className="mt-7 flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#f7d682] px-6 py-4 font-[family-name:var(--font-sans)] text-[12.5px] font-black uppercase tracking-[0.16em] text-[#2b1748] shadow-[0_14px_34px_rgba(247,214,130,.34)]">
+          Unlock my book <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+    </Page>
+  );
+}
+
 export function BookPreview({ name, dob, paragraph, onContinue }: Props) {
   const lp = useMemo(() => lifePath(dob), [dob]);
   const ex = useMemo(() => expressionNumber(name || "Astrelo"), [name]);
-  const zodiac = zodiacSign(dob.month, dob.day);
+  const zodiac = useMemo(() => zodiacSign(dob.month, dob.day), [dob]);
+  const pager = useBookPager(9);
 
-  const narrativeText = useMemo(() => {
-    const raw = (paragraph ?? "").trim();
-    if (raw) return raw;
-    return `${name || "You"}, born under your ${zodiac} sun with Life Path ${lp} — you carry yourself with the calm certainty of someone who already knows where the room is headed before anyone else speaks. People read that as confidence, sometimes as arrogance, but what's actually happening is faster: you've run the scenario three moves ahead and you're already standing where the conversation will end up. Underneath it sits a fear you'd never admit out loud — that stopping, even briefly, means falling behind. Your Expression number ${ex} complicates this in an interesting way: it gives your motion an intuitive, almost prophetic edge — you sense outcomes before the data confirms them, but the isolation that follows from leading alone runs deeper than you let on.`;
-  }, [paragraph, name, lp, ex, zodiac]);
+  const narrative = useMemo(() => {
+    const clean = paragraph?.trim();
+    if (clean) return clean;
+    return `${name || "You"}, born ${birthDate(dob)}, under a ${zodiac} sun with Life Path ${lp}, move through the world as someone who is rarely only responding to the moment. Your system is always reading the next step, the hidden motive, the unfinished sentence. People close to you may think you are complicated, but the truth is more precise: your blueprint carries a pattern that has been asking to be named. ${LP_OPENING[lp] ?? LP_OPENING[1]} This free chapter opens the first door. The full book shows where the pattern came from, how it affects love and money, and which dates help you move without forcing the outcome.`;
+  }, [dob, lp, name, paragraph, zodiac]);
 
-  const total = 9;
-  const snap = useScrollSnap(total);
+  const pages = [
+    <Cover key="cover" name={name} dob={dob} lp={lp} />,
+    <NarrativePage key="narrative" name={name} dob={dob} lp={lp} ex={ex} paragraph={narrative} />,
+    <FullBleedIllustration key="illustration" lp={lp} />,
+    <EssencePage key="essence" lp={lp} />,
+    <ChapterArtwork key="chapter-art" lp={lp} />,
+    <PalmScan key="palm" onCaptured={() => pager.goTo(6)} />,
+    <ScanResult key="scan-result" name={name} />,
+    <ChapterList key="chapters" name={name} />,
+    <FinalPage key="final" name={name} onContinue={onContinue} />,
+  ];
 
   return (
-    <div className="quiz-fade-in -mx-5 -mt-6 flex min-h-[calc(100dvh-64px)] flex-col select-none">
+    <div className="quiz-fade-in -mx-5 -mb-8 -mt-6 h-[100dvh] min-h-[640px] overflow-hidden bg-[#fbf7ee] select-none">
       <div
-        ref={snap.ref}
-        className="flex flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain"
-        style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
+        ref={pager.viewportRef}
+        className="relative h-full overflow-hidden overscroll-contain touch-pan-y"
+        onPointerDown={(event) => {
+          if ((event.target as HTMLElement).closest("[data-no-drag],button,input,select,textarea,a")) return;
+          event.currentTarget.setPointerCapture?.(event.pointerId);
+          pager.begin(event.clientX, event.clientY);
+        }}
+        onPointerMove={(event) => {
+          const lock = pager.move(event.clientX, event.clientY);
+          if (lock === "x") event.preventDefault();
+        }}
+        onPointerUp={(event) => {
+          event.currentTarget.releasePointerCapture?.(event.pointerId);
+          pager.end();
+        }}
+        onPointerCancel={pager.end}
       >
-        <style>{`.book-scroller::-webkit-scrollbar{display:none}`}</style>
-        <Cover name={name} dob={dob} lp={lp} />
-        <NarrativePage name={name} lp={lp} paragraph={narrativeText} />
-        <IllustrationPage lp={lp} />
-        <EssencePage lp={lp} />
-        <ChapterCloseHook name={name} lp={lp} ex={ex} />
-        <PalmScanPage onCaptured={() => snap.goTo(6)} />
-        <ScanResultPage name={name} />
-        <TOCPage name={name} />
-        {/* Screen 9 — hand-off to real Paywall via onContinue */}
-        <Page bg="cosmic">
-          <div className="flex flex-1 flex-col items-center justify-center gap-6 px-8 py-14 text-center">
-            <p className="font-[family-name:var(--font-sans)] text-[10px] font-bold uppercase tracking-[0.28em] text-[color:var(--gold)]/80">
-              Ready
-            </p>
-            <h2 className="font-[family-name:var(--font-serif-display)] text-[30px] font-extrabold leading-[1.1] text-white">
-              Unlock {name ? `${name}'s` : "your"}<br />full Blueprint
-            </h2>
-            <p className="mx-auto max-w-[30ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.6] text-white/70">
-              14 chapters · palm captured · dated windows · a closing letter written only for you.
-            </p>
-            <button
-              onClick={onContinue}
-              className="mt-2 flex w-full max-w-[300px] items-center justify-center gap-2 rounded-2xl bg-[color:var(--gold)] px-6 py-4 font-[family-name:var(--font-sans)] text-[13px] font-black uppercase tracking-[0.16em] text-[color:var(--navy)] shadow-[0_10px_28px_oklch(0.82_0.16_85/.35)]"
-            >
-              See my price <ArrowRight className="h-4 w-4" />
-            </button>
-          </div>
-        </Page>
-      </div>
+        <div
+          className={`flex h-full will-change-transform ${pager.isDragging ? "" : "transition-transform duration-300 ease-out"}`}
+          style={{ transform: `translate3d(${(-pager.index * pager.width) + pager.dragX}px,0,0)` }}
+        >
+          {pages}
+        </div>
 
-      {/* Page dots */}
-      <div className="bg-[color:var(--paper)] px-5 py-4">
-        <div className="flex items-center justify-center gap-1.5">
-          {Array.from({ length: total }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              aria-label={`Go to page ${i + 1}`}
-              onClick={() => snap.goTo(i)}
-              className={`h-1.5 rounded-full transition-all ${
-                i === snap.idx ? "w-6 bg-[color:var(--navy)]" : "w-1.5 bg-[color:var(--paper-ink)]/25"
-              }`}
-            />
+        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center gap-1.5">
+          {pages.map((_, i) => (
+            <span key={i} className={`h-1.5 rounded-full transition-all ${i === pager.index ? "w-6 bg-[#943fc7]" : "w-1.5 bg-[#2b1748]/[0.2]"}`} />
           ))}
         </div>
       </div>
