@@ -452,10 +452,6 @@ function PalmScan({ onCaptured, completed }: { onCaptured: () => void; completed
             ) : (
               <label
                 htmlFor={inputId}
-                onClick={() => {
-                  if (status !== "idle") return;
-                  inputRef.current?.click();
-                }}
                 className={`flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#f7d682] px-6 py-4 font-[family-name:var(--font-sans)] text-[12.5px] font-black uppercase tracking-[0.15em] text-[#2b1748] shadow-[0_14px_34px_rgba(247,214,130,.32)] ${status === "idle" ? "cursor-pointer" : "pointer-events-none opacity-70"}`}
               >
                 <Camera className="h-4 w-4" /> {status === "idle" ? "Upload palm photo" : "Scanning palm…"}
