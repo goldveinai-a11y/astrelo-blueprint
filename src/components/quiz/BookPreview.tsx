@@ -247,7 +247,7 @@ function NarrativePage({ name, dob, lp, ex, paragraph }: { name: string; dob: DO
 
 function FullBleedIllustration({ lp }: { lp: number }) {
   return (
-    <Page tone="image" noDrag={!completed}>
+    <Page tone="image">
       <img src={chapterIllustration} alt="Golden numerology wheel" className="absolute inset-0 h-full w-full object-cover" draggable={false} loading="lazy" width={1080} height={1920} />
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(40,18,72,.03)_0%,rgba(40,18,72,.04)_45%,rgba(48,20,82,.84)_100%)]" />
       <div className="relative flex h-full flex-col justify-end px-8 pb-16 text-center">
@@ -306,7 +306,7 @@ function EssencePage({ lp }: { lp: number }) {
 
 function ChapterArtwork({ lp, name }: { lp: number; name: string }) {
   return (
-    <Page tone="image">
+    <Page tone="image" noDrag={!completed}>
       <img src={chapterIllustration} alt="Numerology chapter artwork" className="absolute inset-0 h-full w-full scale-[1.08] object-cover blur-[1px]" draggable={false} loading="lazy" width={1080} height={1920} />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_32%,rgba(255,255,255,.2),transparent_24%),linear-gradient(to_bottom,rgba(138,54,191,.22),rgba(234,88,145,.28),rgba(47,20,82,.94))]" />
       <div className="relative flex h-full flex-col px-8 pb-14 pt-12 text-center">
