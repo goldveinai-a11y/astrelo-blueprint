@@ -306,7 +306,7 @@ function EssencePage({ lp }: { lp: number }) {
 
 function ChapterArtwork({ lp, name }: { lp: number; name: string }) {
   return (
-    <Page tone="image" noDrag={!completed}>
+    <Page tone="image">
       <img src={chapterIllustration} alt="Numerology chapter artwork" className="absolute inset-0 h-full w-full scale-[1.08] object-cover blur-[1px]" draggable={false} loading="lazy" width={1080} height={1920} />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_32%,rgba(255,255,255,.2),transparent_24%),linear-gradient(to_bottom,rgba(138,54,191,.22),rgba(234,88,145,.28),rgba(47,20,82,.94))]" />
       <div className="relative flex h-full flex-col px-8 pb-14 pt-12 text-center">
@@ -394,7 +394,7 @@ function PalmScan({ onCaptured, completed }: { onCaptured: () => void; completed
         : "Add a clear palm photo";
 
   return (
-    <Page tone="image">
+    <Page tone="image" noDrag={!completed}>
       <img src={palmIllustration} alt="Palm reading guide" className="absolute inset-0 h-full w-full object-cover" draggable={false} loading="lazy" width={1080} height={1920} />
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(44,21,75,.04)_0%,rgba(44,21,75,.08)_38%,rgba(44,21,75,.68)_70%,rgba(37,17,65,.98)_100%)]" />
       <div className="relative flex h-full flex-col items-center px-7 pb-8 pt-9 text-center">
