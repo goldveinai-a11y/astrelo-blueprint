@@ -172,7 +172,7 @@ function birthDate(dob: DOB) {
   });
 }
 
-function Page({ children, tone = "paper" }: { children: ReactNode; tone?: "paper" | "cover" | "image" }) {
+function Page({ children, tone = "paper", noDrag = false }: { children: ReactNode; tone?: "paper" | "cover" | "image"; noDrag?: boolean }) {
   const className = tone === "paper"
     ? "bg-[#fbf7ee] text-[#211b29]"
     : tone === "cover"
@@ -180,7 +180,7 @@ function Page({ children, tone = "paper" }: { children: ReactNode; tone?: "paper
       : "bg-[linear-gradient(160deg,#3a1b64_0%,#8e3ec6_52%,#ed6b9a_100%)] text-white";
 
   return (
-    <section className={`relative h-full min-w-0 flex-[0_0_100%] overflow-hidden ${className}`}>
+    <section className={`relative h-full min-w-0 flex-[0_0_100%] overflow-hidden ${className}`} {...(noDrag ? { "data-no-drag": true } : {})}>
       {children}
     </section>
   );
@@ -247,7 +247,7 @@ function NarrativePage({ name, dob, lp, ex, paragraph }: { name: string; dob: DO
 
 function FullBleedIllustration({ lp }: { lp: number }) {
   return (
-    <Page tone="image">
+    <Page tone="image" noDrag={!completed}>
       <img src={chapterIllustration} alt="Golden numerology wheel" className="absolute inset-0 h-full w-full object-cover" draggable={false} loading="lazy" width={1080} height={1920} />
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(40,18,72,.03)_0%,rgba(40,18,72,.04)_45%,rgba(48,20,82,.84)_100%)]" />
       <div className="relative flex h-full flex-col justify-end px-8 pb-16 text-center">
@@ -400,7 +400,7 @@ function PalmScan({ onCaptured, completed }: { onCaptured: () => void; completed
       <div className="relative flex h-full flex-col items-center px-7 pb-8 pt-9 text-center">
         <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f7d682]">Palm layer · required</p>
 
-        <div className="mt-auto w-full" {...(!completed ? { "data-no-drag": true } : {})}>
+        <div className="mt-auto w-full">
           <div className="mx-auto grid h-[172px] w-[172px] place-items-center rounded-full border border-[#f7d682]/[0.42] bg-white/[0.07] shadow-[0_0_60px_rgba(247,214,130,.18)]">
             <div className="relative grid h-[132px] w-[132px] place-items-center overflow-hidden rounded-full border border-white/[0.18] bg-[#2b1748]/[0.36]">
               {previewUrl ? (
