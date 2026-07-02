@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import { ArrowLeft, ArrowRight, BookOpen, Camera, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, Sparkles } from "lucide-react";
 import { expressionNumber, lifePath, zodiacSign, type DOB } from "@/lib/quiz/numerology";
 import chapterIllustration from "@/assets/quiz/chapter-illustration-1.jpg";
-import palmIllustration from "@/assets/quiz/palm-illustration.jpg";
+
 
 type Props = {
   name: string;
@@ -96,7 +96,7 @@ const CHAPTERS = [
   ["Karmic Debt & Lessons", "The inherited loop your life is trying to close"],
   ["Money Pattern", "Where your natural earning rhythm speeds up or stalls"],
   ["Love Compatibility Map", "The numbers that pull you closer — or quietly drain you"],
-  ["Palm Reading", "Heart, head, and life line interpretation"],
+  ["Astrocartography", "Your power cities and relocation map"],
   ["Career Direction", "The work style your chart can sustain long-term"],
   ["2026 Forecast", "Month-by-month timing for decisions"],
   ["Pinnacle Cycles", "Your four life seasons, dated by year"],
@@ -325,176 +325,6 @@ function ChapterArtwork({ lp, name }: { lp: number; name: string }) {
   );
 }
 
-function PalmScan({ onCaptured, completed }: { onCaptured: () => void; completed: boolean }) {
-  const inputId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const uploadTimer = useRef<number | null>(null);
-  const scanTimer = useRef<number | null>(null);
-  const doneTimer = useRef<number | null>(null);
-  const [status, setStatus] = useState<"idle" | "uploading" | "scanning" | "complete">(completed ? "complete" : "idle");
-  const [progress, setProgress] = useState(completed ? 100 : 0);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-  const clearTimers = useCallback(() => {
-    if (uploadTimer.current) window.clearTimeout(uploadTimer.current);
-    if (scanTimer.current) window.clearInterval(scanTimer.current);
-    if (doneTimer.current) window.clearTimeout(doneTimer.current);
-    uploadTimer.current = null;
-    scanTimer.current = null;
-    doneTimer.current = null;
-  }, []);
-
-  useEffect(() => {
-    if (completed) {
-      clearTimers();
-      setStatus("complete");
-      setProgress(100);
-    }
-  }, [clearTimers, completed]);
-
-  useEffect(() => () => {
-    clearTimers();
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-  }, [clearTimers, previewUrl]);
-
-  const startScan = useCallback((file: File) => {
-    clearTimers();
-    const nextPreview = URL.createObjectURL(file);
-    setPreviewUrl((current) => {
-      if (current) URL.revokeObjectURL(current);
-      return nextPreview;
-    });
-    setStatus("uploading");
-    setProgress(8);
-
-    uploadTimer.current = window.setTimeout(() => {
-      setStatus("scanning");
-      const steps = [22, 36, 49, 63, 76, 88, 96, 100];
-      let stepIndex = 0;
-      scanTimer.current = window.setInterval(() => {
-        const next = steps[stepIndex] ?? 100;
-        setProgress(next);
-        stepIndex += 1;
-        if (next >= 100) {
-          if (scanTimer.current) window.clearInterval(scanTimer.current);
-          scanTimer.current = null;
-          setStatus("complete");
-          doneTimer.current = window.setTimeout(onCaptured, 650);
-        }
-      }, 420);
-    }, 620);
-  }, [clearTimers, onCaptured]);
-
-  const scanText = status === "uploading"
-    ? "Uploading palm photo…"
-    : status === "scanning"
-      ? "Mapping heart, head, and life lines…"
-      : status === "complete"
-        ? "Palm layer added"
-        : "Add a clear palm photo";
-
-  return (
-    <Page tone="image" noDrag={!completed}>
-      <img src={palmIllustration} alt="Palm reading guide" className="absolute inset-0 h-full w-full object-cover" draggable={false} loading="lazy" width={1080} height={1920} />
-      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(44,21,75,.04)_0%,rgba(44,21,75,.08)_38%,rgba(44,21,75,.68)_70%,rgba(37,17,65,.98)_100%)]" />
-      <div className="relative flex h-full flex-col items-center px-7 pb-8 pt-9 text-center">
-        <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f7d682]">Palm layer · required</p>
-
-        <div className="mt-auto w-full">
-          <div className="mx-auto grid h-[172px] w-[172px] place-items-center rounded-full border border-[#f7d682]/[0.42] bg-white/[0.07] shadow-[0_0_60px_rgba(247,214,130,.18)]">
-            <div className="relative grid h-[132px] w-[132px] place-items-center overflow-hidden rounded-full border border-white/[0.18] bg-[#2b1748]/[0.36]">
-              {previewUrl ? (
-                <img src={previewUrl} alt="Uploaded palm" className="absolute inset-0 h-full w-full object-cover" />
-              ) : (
-                <Camera className="h-12 w-12 text-[#f7d682]" strokeWidth={1.35} />
-              )}
-              {status === "scanning" && <div className="absolute inset-x-0 top-0 h-[2px] animate-[scanLine_1.25s_ease-in-out_infinite] bg-[#f7d682] shadow-[0_0_18px_rgba(247,214,130,.95)]" />}
-              {status === "complete" && <div className="absolute inset-0 grid place-items-center bg-[#2b1748]/[0.45]"><Check className="h-10 w-10 text-[#f7d682]" strokeWidth={3} /></div>}
-            </div>
-          </div>
-
-          <h2 className="mx-auto mt-6 max-w-[16ch] font-[family-name:var(--font-display)] text-[26px] font-black leading-[1.06] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,.3)]">Center your palm in the frame</h2>
-          <p className="mx-auto mt-3 max-w-[31ch] font-[family-name:var(--font-serif-body)] text-[13.5px] leading-[1.55] text-white/[0.78]">
-            Upload a bright, open-hand photo. We will add your palm lines to the numerology report before showing the result.
-          </p>
-
-          <div className="mt-5 rounded-[18px] border border-white/[0.12] bg-white/[0.08] p-3 text-left backdrop-blur-sm">
-            <div className="flex items-center justify-between gap-3 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.14em] text-white/[0.72]">
-              <span>{scanText}</span>
-              <span className="text-[#f7d682]">{progress}%</span>
-            </div>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.14]">
-              <div className="h-full rounded-full bg-[#f7d682] transition-all duration-300" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-
-          <div className="mt-5 w-full">
-            <input
-              id={inputId}
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              className="absolute h-px w-px overflow-hidden opacity-0"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) startScan(file);
-              }}
-            />
-            {status === "complete" ? (
-              <button
-                type="button"
-                onClick={onCaptured}
-                className="flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#f7d682] px-6 py-4 font-[family-name:var(--font-sans)] text-[12.5px] font-black uppercase tracking-[0.15em] text-[#2b1748] shadow-[0_14px_34px_rgba(247,214,130,.32)]"
-              >
-                View palm result <ArrowRight className="h-4 w-4" />
-              </button>
-            ) : (
-              <label
-                htmlFor={inputId}
-                className={`flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#f7d682] px-6 py-4 font-[family-name:var(--font-sans)] text-[12.5px] font-black uppercase tracking-[0.15em] text-[#2b1748] shadow-[0_14px_34px_rgba(247,214,130,.32)] ${status === "idle" ? "cursor-pointer" : "pointer-events-none opacity-70"}`}
-              >
-                <Camera className="h-4 w-4" /> {status === "idle" ? "Upload palm photo" : "Scanning palm…"}
-              </label>
-            )}
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="sr-only"
-            >
-              Choose palm photo
-            </button>
-          </div>
-        </div>
-      </div>
-    </Page>
-  );
-}
-
-function ScanResult({ name }: { name: string }) {
-  return (
-    <Page tone="cover">
-      <div className="absolute inset-0 opacity-60 [background-image:radial-gradient(circle_at_23%_15%,rgba(247,214,130,.28),transparent_28%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,.2),transparent_30%)]" />
-      <div className="relative flex h-full flex-col items-center justify-center px-7 py-10 text-center">
-        <div className="grid h-28 w-28 place-items-center rounded-full border border-[#f7d682]/[0.55] shadow-[0_0_54px_rgba(247,214,130,.22)]">
-          <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f7d682] text-[#2b1748] shadow-[0_0_34px_rgba(247,214,130,.38)]"><Check className="h-7 w-7" strokeWidth={3} /></div>
-        </div>
-        <p className="mt-7 font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f7d682]">Palm layer ready</p>
-        <h2 className="mt-3 max-w-[14ch] font-[family-name:var(--font-display)] text-[28px] font-black leading-[1.04] text-white">{name || "Your"} scan is ready to decode</h2>
-        <p className="mt-5 max-w-[31ch] font-[family-name:var(--font-serif-body)] text-[14px] leading-[1.6] text-white/[0.76]">
-          Heart, life, and head lines were identified. The complete interpretation is placed inside Chapter 11.
-        </p>
-        <div className="mt-8 grid w-full grid-cols-3 gap-2">
-          {[["Heart", "Deep"], ["Life", "Long"], ["Head", "Split"]].map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-white/[0.14] bg-white/[0.08] px-2 py-4">
-              <p className="font-[family-name:var(--font-display)] text-[17px] font-black text-[#f7d682]">{value}</p>
-              <p className="mt-1 font-[family-name:var(--font-sans)] text-[8px] font-bold uppercase tracking-[0.14em] text-white/[0.56]">{label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Page>
-  );
-}
 
 function ChapterList({ name }: { name: string }) {
   return (
@@ -503,7 +333,7 @@ function ChapterList({ name }: { name: string }) {
         <BookHeader left="Your Numerology Blueprint" right="15 chapters" />
         <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-6 pb-24 pt-1 [-webkit-overflow-scrolling:touch]" data-no-drag>
           <h2 className="font-[family-name:var(--font-display)] text-[26px] font-black leading-[1.05] text-[#2b1748]">What waits inside{name ? `, ${name}` : ""}</h2>
-          <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[13px] italic leading-snug text-[#6b6170]">A complete ebook built from your birth date, name, palm layer, and current timing cycle.</p>
+          <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[13px] italic leading-snug text-[#6b6170]">A complete ebook built from your birth date, name, and current timing cycle.</p>
           <div className="mt-5 font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.17em] text-[#8b7f8e]">Numerology · ready now</div>
           <ol className="mt-2 space-y-0">
             {CHAPTERS.map(([title, sub], i) => (
@@ -532,7 +362,7 @@ function FinalPage({ name, onContinue }: { name: string; onContinue: () => void 
         <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.28em] text-[#f7d682]">Ready</p>
         <Sparkles className="mt-8 h-10 w-10 text-[#f7d682]" strokeWidth={1.4} />
         <h2 className="mt-5 max-w-[13ch] font-[family-name:var(--font-display)] text-[32px] font-black leading-[1.02] text-white">Unlock {name ? `${name}'s` : "your"} full Blueprint</h2>
-        <p className="mt-5 max-w-[29ch] font-[family-name:var(--font-serif-body)] text-[14.5px] leading-[1.58] text-white/[0.76]">15 chapters, palm reading result, dated windows, compatibility map, and one closing letter written only for you.</p>
+        <p className="mt-5 max-w-[29ch] font-[family-name:var(--font-serif-body)] text-[14.5px] leading-[1.58] text-white/[0.76]">15 chapters, astrocartography map, dated windows, compatibility map, and one closing letter written only for you.</p>
         <div className="mt-8 rounded-full border border-[#f7d682]/[0.38] px-5 py-2 font-[family-name:var(--font-sans)] text-[10px] font-black uppercase tracking-[0.16em] text-[#f7d682]">One-time access · $19</div>
         <button type="button" onClick={onContinue} className="mt-7 flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#f7d682] px-6 py-4 font-[family-name:var(--font-sans)] text-[12.5px] font-black uppercase tracking-[0.16em] text-[#2b1748] shadow-[0_14px_34px_rgba(247,214,130,.34)]">
           Unlock my book <ArrowRight className="h-4 w-4" />
@@ -546,9 +376,7 @@ export function BookPreview({ name, dob, paragraph, onContinue }: Props) {
   const lp = useMemo(() => lifePath(dob), [dob]);
   const ex = useMemo(() => expressionNumber(name || "Astrelo"), [name]);
   const zodiac = useMemo(() => zodiacSign(dob.month, dob.day), [dob]);
-  const [palmScanned, setPalmScanned] = useState(false);
-  const maxReachableIndex = palmScanned ? 8 : 5;
-  const pager = useBookPager(9, maxReachableIndex);
+  const pager = useBookPager(7, 7);
 
   const narrative = useMemo(() => {
     const clean = paragraph?.trim();
@@ -562,15 +390,9 @@ export function BookPreview({ name, dob, paragraph, onContinue }: Props) {
     <FullBleedIllustration key="illustration" lp={lp} />,
     <EssencePage key="essence" lp={lp} />,
     <ChapterArtwork key="chapter-art" lp={lp} name={name} />,
-    <PalmScan key="palm" completed={palmScanned} onCaptured={() => setPalmScanned(true)} />,
-    <ScanResult key="scan-result" name={name} />,
     <ChapterList key="chapters" name={name} />,
     <FinalPage key="final" name={name} onContinue={onContinue} />,
   ];
-
-  useEffect(() => {
-    if (palmScanned && pager.index === 5) pager.goTo(6);
-  }, [pager, palmScanned]);
 
   return (
     <div className="quiz-fade-in -mx-5 -mb-8 -mt-6 h-[100dvh] min-h-[640px] overflow-hidden bg-[#fbf7ee] select-none">

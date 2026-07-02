@@ -10,7 +10,7 @@ type GeneratedNarrative = {
 export async function generateNarrativeForOrder(token: string): Promise<boolean> {
   const { data: order, error: fetchErr } = await supabaseAdmin
     .from("orders")
-    .select("token, full_name, dob_day, dob_month, dob_year, tier, partner_name, generated_narrative")
+    .select("token, full_name, dob_day, dob_month, dob_year, tier, partner_name, generated_narrative, birth_place_name, birth_lat, birth_lng")
     .eq("token", token)
     .maybeSingle();
 
@@ -157,9 +157,90 @@ Write the 10 chapters as the JSON object.`;
     return false;
   }
 
+  // ─── Astrocartography chapter (Chapter 15) ───────────────────────────────
+  // Uses astrology-api.io (same key as Astrelo, ~5 credits per call).
+  // Requires birth_place_lat/lng from the quiz. Falls back gracefully if missing.
+  let astrocartographyText: string | null = null;
+  const astroKey = process.env.ASTROLOGY_API_KEY;
+  const birthLat = order.birth_lat as number | null;
+  const birthLng = order.birth_lng as number | null;
+  const birthPlaceName = order.birth_place_name as string | null;
+
+  if (astroKey && birthLat != null && birthLng != null) {
+    try {
+      // Resolve birth time — use stored value or default noon
+      const [birthH, birthM] = ((order as Record<string, unknown>)["birth_time"] as string | null ?? "12:00").split(":").map(Number);
+      const astroPayload = {
+        subjects: [{
+          name: fullName,
+          birth_data: {
+            year: dob.year, month: dob.month, day: dob.day,
+            hour: isNaN(birthH) ? 12 : birthH,
+            minute: isNaN(birthM) ? 0 : birthM,
+            second: 0,
+            latitude: birthLat,
+            longitude: birthLng,
+          },
+        }],
+      };
+      const astroRes = await fetch("https://api.astrology-api.io/api/v3/astrocartography/lines", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${astroKey}` },
+        body: JSON.stringify(astroPayload),
+      });
+      if (astroRes.ok) {
+        const astroData = await astroRes.json() as Record<string, unknown>;
+        const rawLines = Array.isArray(astroData.lines) ? astroData.lines as Array<Record<string, unknown>> : [];
+
+        // Pick top 5 most relevant lines (Sun and Venus priority for a numerology audience)
+        const priority = ["sun", "venus", "jupiter", "moon", "mercury"];
+        const sorted = rawLines.sort((a, b) => {
+          const ai = priority.indexOf(String(a.planet ?? "").toLowerCase());
+          const bi = priority.indexOf(String(b.planet ?? "").toLowerCase());
+          return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+        }).slice(0, 5);
+
+        // Build a Claude narrative from the raw line data
+        const linesSummary = sorted.map(l =>
+          `${String(l.planet ?? "")} ${String(l.type ?? "")} line near ${String(l.city ?? l.country ?? "unknown location")}`
+        ).join("; ");
+
+        const astroNarrativeRes = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-api-key": apiKey!, "anthropic-version": "2023-06-01" },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 600,
+            system: `You write the Astrocartography chapter for a personalized numerology ebook. Tone: same as the rest of the book — perceptive, warm, direct, literary. Second person. 480-520 words. No bullet points. No headers. Pure prose paragraphs. Forbidden words: "unique potential", "harness", "journey", "authentic self", "cosmic blueprint", "dive deep".`,
+            messages: [{
+              role: "user",
+              content: `Name: ${fullName}\nBorn: ${dob.day}/${dob.month}/${dob.year} in ${birthPlaceName ?? "unknown location"}\nLife Path: ${(narrative as Record<string, string>)["life-path"] ? dob.day : ""}
+Astrocartography lines found: ${linesSummary || "no lines data available"}
+
+Write the Astrocartography chapter. Explain what these planetary lines mean for ${fullName} specifically — where their power cities are, what each line type brings (expansion, love, communication, etc.), and how this connects to their Life Path number pattern. Make it feel personal and specific, not generic. End with one sharp observation about where they should consider spending more time and why.`,
+            }],
+          }),
+        });
+        if (astroNarrativeRes.ok) {
+          const astroNarrativeData = await astroNarrativeRes.json() as { content: Array<{ type: string; text: string }> };
+          const astroTextBlock = astroNarrativeData.content?.find(b => b.type === "text");
+          if (astroTextBlock?.text) astrocartographyText = astroTextBlock.text.trim();
+        }
+      }
+    } catch (err) {
+      console.error("[generateNarrative] Astrocartography fetch failed:", err);
+      // Non-fatal — proceed without astrocartography chapter
+    }
+  }
+
+  const fullNarrative = {
+    ...narrative,
+    ...(astrocartographyText ? { "astrocartography": astrocartographyText } : {}),
+  };
+
   const { error: updateErr } = await supabaseAdmin
     .from("orders")
-    .update({ generated_narrative: narrative })
+    .update({ generated_narrative: fullNarrative })
     .eq("token", token);
 
   if (updateErr) {
