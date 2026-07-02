@@ -331,7 +331,7 @@ function ChapterList({ name }: { name: string }) {
     <Page>
       <div className="flex h-full flex-col">
         <BookHeader left="Your Numerology Blueprint" right="15 chapters" />
-        <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-6 pb-24 pt-1 [-webkit-overflow-scrolling:touch]" data-no-drag>
+        <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-6 pb-24 pt-1 [-webkit-overflow-scrolling:touch]">
           <h2 className="font-[family-name:var(--font-display)] text-[26px] font-black leading-[1.05] text-[#2b1748]">What waits inside{name ? `, ${name}` : ""}</h2>
           <p className="mt-2 font-[family-name:var(--font-serif-body)] text-[13px] italic leading-snug text-[#6b6170]">A complete ebook built from your birth date, name, and current timing cycle.</p>
           <div className="mt-5 font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.17em] text-[#8b7f8e]">Numerology · ready now</div>
