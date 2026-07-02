@@ -434,7 +434,6 @@ function PalmScan({ onCaptured, completed }: { onCaptured: () => void; completed
               ref={inputRef}
               type="file"
               accept="image/*"
-              capture="user"
               className="absolute h-px w-px overflow-hidden opacity-0"
               onChange={(event) => {
                 const file = event.target.files?.[0];
