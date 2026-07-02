@@ -400,7 +400,7 @@ function PalmScan({ onCaptured, completed }: { onCaptured: () => void; completed
       <div className="relative flex h-full flex-col items-center px-7 pb-8 pt-9 text-center">
         <p className="font-[family-name:var(--font-sans)] text-[9px] font-black uppercase tracking-[0.24em] text-[#f7d682]">Palm layer · required</p>
 
-        <div className="mt-auto w-full" data-no-drag>
+        <div className="mt-auto w-full" {...(!completed ? { "data-no-drag": true } : {})}>
           <div className="mx-auto grid h-[172px] w-[172px] place-items-center rounded-full border border-[#f7d682]/[0.42] bg-white/[0.07] shadow-[0_0_60px_rgba(247,214,130,.18)]">
             <div className="relative grid h-[132px] w-[132px] place-items-center overflow-hidden rounded-full border border-white/[0.18] bg-[#2b1748]/[0.36]">
               {previewUrl ? (
