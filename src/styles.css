@@ -108,4 +108,8 @@
   .quiz-paper { background: linear-gradient(var(--paper), var(--paper-2)); }
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
+  @keyframes scanLine {
+    0%, 100% { transform: translateY(0); opacity: 0.45; }
+    50% { transform: translateY(130px); opacity: 1; }
+  }
 }
