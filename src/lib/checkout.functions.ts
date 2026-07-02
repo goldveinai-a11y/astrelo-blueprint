@@ -3,12 +3,10 @@ import { z } from "zod";
 
 const TIER_PRICES = {
   core: "price_1TkSVwLWKarlNrJhDbMQ1Ezj",
-  popular: "price_1TkSWXLWKarlNrJhmX9lpOqZ",
-  ultimate: "price_1TkSWkLWKarlNrJhiu8GZHaJ",
 } as const;
 
 const InputSchema = z.object({
-  tier: z.enum(["core", "popular", "ultimate"]),
+  tier: z.enum(["core"]),
   email: z.string().email(),
   fullName: z.string().min(1),
   dob: z.object({
@@ -71,8 +69,6 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
 const TIER_AMOUNTS = {
   core: 1900,
-  popular: 2700,
-  ultimate: 3300,
 } as const;
 
 const PaymentIntentSchema = InputSchema.extend({

@@ -89,7 +89,7 @@ TECHNIQUES TO USE IN EVERY CHAPTER:
 4. Specificity anchors — reference the actual numbers (${report.core.lifePath}, ${report.core.expression}, ${report.core.soulUrge}) in the text so it feels calculated, not generic.
 5. Forward hooks — end each chapter with a tension or question that pulls the reader to the next.
 
-CHAPTER LENGTH: 180-220 words each. Flowing prose paragraphs, no bullet points inside the narrative.
+CHAPTER LENGTH: 480-520 words each. Flowing prose paragraphs — 3-4 distinct paragraphs per chapter, no bullet points inside the narrative. Each paragraph should carry its own angle: opener (outer projection + inner tension), body (how the number plays out in the specific area — money, love, work), cross-reference (connect to at least one other number from their profile), closer (forward hook or sharp observation that creates momentum into the next chapter).
 
 FORBIDDEN: "unique potential", "harness your energy", "the universe has a plan", "journey", "authentic self", "unlock your", "cosmic blueprint", "dive deep into". No clichés.
 
@@ -131,7 +131,7 @@ Write the 10 chapters as the JSON object.`;
     headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 4500,
+      max_tokens: 10000,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),

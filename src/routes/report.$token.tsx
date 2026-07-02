@@ -151,7 +151,7 @@ function ReadyReport({
     const key = `ga_purchase_${token}`;
     if (typeof window === "undefined") return;
     if (window.sessionStorage.getItem(key)) return;
-    const value = TIER_PRICE_USD[tier];
+    const value = (TIER_PRICE_USD as Record<string, number>)[tier] ?? 19;
     track("purchase", {
       transaction_id: token,
       currency: "USD",
